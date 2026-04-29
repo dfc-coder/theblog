@@ -1,0 +1,21 @@
+---
+import type { BlogPost } from '../lib/blog';
+import { getPostPath } from '../lib/blog';
+
+interface Props {
+  post: BlogPost;
+}
+
+const { post } = Astro.props as Props;
+---
+
+<article class="post-card">
+  <p class="post-card-date">{post.data.pubDate.toLocaleDateString('es-AR', { dateStyle: 'long' })}</p>
+  <h2><a href={getPostPath(post)}>{post.data.title}</a></h2>
+  <p>{post.data.description}</p>
+  {post.data.tags.length > 0 && (
+    <ul class="tag-list" aria-label="Etiquetas">
+      {post.data.tags.map((tag: string) => <li>#{tag}</li>)}
+    </ul>
+  )}
+</article>

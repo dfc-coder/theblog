@@ -1,0 +1,33 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PostCard from "../components/PostCard.astro";
+import Hero from "../components/Hero.astro";
+import { getPublishedPosts } from "../lib/blog";
+
+const posts = getPublishedPosts(await getCollection("blog"));
+---
+
+<BaseLayout
+  title="miblog · Inicio"
+  description="Un blog Astro simple, rápido y centrado en contenido estático."
+>
+  <Hero />
+  <section class="container" aria-labelledby="latest-posts">
+    <h2 id="latest-posts">Últimos posts</h2>
+
+    {
+      posts.length > 0 ? (
+        <div class="post-grid">
+          {posts.map((post) => (
+            <PostCard post={post} />
+          ))}
+        </div>
+      ) : (
+        <div class="content-card">
+          <p>Aún no hay posts publicados.</p>
+        </div>
+      )
+    }
+  </section>
+</BaseLayout>

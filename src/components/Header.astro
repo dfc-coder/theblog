@@ -1,0 +1,18 @@
+---
+const nav = [
+  { href: '/', label: 'Inicio' }
+];
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="/">miblog</a>
+    <nav aria-label="Principal">
+      <ul class="nav-list">
+        {nav.map((item) => (
+          <li><a href={item.href}>{item.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>

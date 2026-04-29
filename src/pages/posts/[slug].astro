@@ -1,0 +1,58 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import {
+  getPostPath,
+  getPublishedPosts,
+  resolvePostSlug,
+} from "../../lib/blog";
+
+type Props = {
+  entry: CollectionEntry<"blog">;
+};
+
+export async function getStaticPaths() {
+  const posts = getPublishedPosts(await getCollection("blog"));
+
+  return posts.map((entry) => ({
+    params: { slug: resolvePostSlug(entry) },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props as Props;
+const { Content } = await render(entry);
+const canonicalPath = getPostPath(entry);
+---
+
+<BaseLayout
+  title={`${entry.data.title} • miblog`}
+  description={entry.data.description}
+>
+  <article class="container article-shell">
+    <p class="meta">
+      {entry.data.pubDate.toLocaleDateString("es-AR", { dateStyle: "long" })}
+    </p>
+    <h1>{entry.data.title}</h1>
+    <p>{entry.data.description}</p>
+
+    {
+      entry.data.tags.length > 0 && (
+        <ul class="tag-list" aria-label="Etiquetas del post">
+          {entry.data.tags.map((tag: string) => (
+            <li>#{tag}</li>
+          ))}
+        </ul>
+      )
+    }
+
+    <div class="article-content">
+      <Content />
+    </div>
+
+    <p class="meta">
+      URL canónica: <a href={canonicalPath}>{canonicalPath}</a>
+    </p>
+  </article>
+</BaseLayout>
