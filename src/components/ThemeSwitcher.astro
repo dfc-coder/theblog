@@ -26,13 +26,13 @@ const themes = [
 <script>
   const allowedThemes = ['atelier', 'paper', 'signal'];
 
-  const setTheme = (theme) => {
+  const setTheme = (theme: string) => {
     if (!allowedThemes.includes(theme)) return;
 
     document.documentElement.dataset.theme = theme;
     localStorage.setItem('blog-theme', theme);
 
-    document.querySelectorAll('[data-theme-value]').forEach((button) => {
+    document.querySelectorAll<HTMLElement>('[data-theme-value]').forEach((button) => {
       button.setAttribute('aria-pressed', String(button.dataset.themeValue === theme));
     });
   };
@@ -40,11 +40,9 @@ const themes = [
   const currentTheme = document.documentElement.dataset.theme ?? 'atelier';
   setTheme(currentTheme);
 
-  document.querySelectorAll('[data-theme-value]').forEach((button) => {
+  document.querySelectorAll<HTMLButtonElement>('[data-theme-value]').forEach((button) => {
     button.addEventListener('click', () => {
-      if (button instanceof HTMLButtonElement && button.dataset.themeValue) {
-        setTheme(button.dataset.themeValue);
-      }
+      if (button.dataset.themeValue) setTheme(button.dataset.themeValue);
     });
   });
 </script>
