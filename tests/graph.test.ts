@@ -105,19 +105,26 @@ describe('graph DSL', () => {
     expect(svg).toContain('width="720"');
   });
 
-  it('adds a deterministic hand-drawn skin without changing layout geometry', () => {
+  it('replaces perfect primitives with deterministic hand-drawn geometry', () => {
     const compiled = compileGraphSvg(
       parseGraph('a[terminal]: VISITOR\nb[accent]: ROUTER\na -> b | request')
     );
     const sketched = applyHandDrawnSkin(compiled);
 
     expect(sketched).toContain('data-graph-skin="handwrite"');
-    expect(sketched).toContain('<feTurbulence');
-    expect(sketched).toContain('graph-sketch-echo');
+    expect(sketched).toContain('graph-node-shape');
+    expect(sketched).toContain('graph-node-echo');
+    expect(sketched).toContain('graph-hatch');
+    expect(sketched).toContain('graph-edge-stroke--primary');
+    expect(sketched).toContain('graph-edge-stroke--secondary');
+    expect(sketched).toContain('graph-arrow-hand--primary');
+    expect(sketched).not.toContain('<feTurbulence');
+    expect(sketched).not.toContain('marker-end=');
     expect(sketched).toContain('width="720"');
     expect(sketched).toContain('request');
     expect(sketched.lastIndexOf('graph-edge-labels')).toBeGreaterThan(
       sketched.lastIndexOf('graph-node')
     );
+    expect(applyHandDrawnSkin(compiled)).toBe(sketched);
   });
 });
