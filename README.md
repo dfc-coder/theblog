@@ -30,6 +30,14 @@ Si `SITE_URL` no está definido, el desarrollo local usa `http://localhost:4321`
 
 Los posts viven en `src/content/blog/*.md` y se validan con el schema de `src/content/blog/schema.ts`.
 
+## Política de sizing responsive
+
+Las medidas espaciales de UI usan unidades relativas (`rem`, `em`, `%`, `vw`, `vh`) y funciones fluidas como `clamp()`, `min()` y `max()`.
+
+No se permiten unidades CSS absolutas (`px`, `pt`, `pc`, `cm`, `mm`, `in`) en `src/` ni en assets de `public/`. `tests/relative-units.test.ts` aplica esta regla automáticamente en CI.
+
+Las excepciones son valores que no representan layout CSS: coordenadas numéricas del espacio interno `viewBox` de SVG, duraciones de animación (`ms`/`s`) y constantes lógicas sin unidad. Las coordenadas SVG permanecen determinísticas y el escalado responsive se resuelve mediante `viewBox` y CSS relativo.
+
 ## Producción
 
 El build genera HTML estático en `dist/` e incluye:
