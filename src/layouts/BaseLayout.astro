@@ -25,11 +25,20 @@ const canonicalUrl = new URL(canonicalPath, siteUrl).href;
 ---
 
 <!doctype html>
-<html lang={SITE.language}>
+<html lang={SITE.language} data-theme="atelier">
   <head>
+    <script is:inline>
+      try {
+        const savedTheme = localStorage.getItem('blog-theme');
+        if (savedTheme && ['atelier', 'paper', 'signal'].includes(savedTheme)) {
+          document.documentElement.dataset.theme = savedTheme;
+        }
+      } catch (_) {}
+    </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#0b0b0a" />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
     <title>{title}</title>
@@ -48,7 +57,7 @@ const canonicalUrl = new URL(canonicalPath, siteUrl).href;
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
   </head>
-  <body>
+  <body id="top">
     <div class="site-shell">
       <Header />
       <main class="site-main">
