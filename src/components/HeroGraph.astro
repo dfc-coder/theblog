@@ -8,30 +8,33 @@ const source = `
 title: Cómo se construyen estas notas
 direction: LR
 
-real[terminal]: REALIDAD
 observe: OBSERVAR
 understand: ENTENDER
+learn[terminal]: APRENDER
 decide: DECIDIR
 implement: IMPLEMENTAR
 production[accent]: PRODUCCIÓN
-learn[muted]: APRENDER
 
-real -> observe | señales
 observe -> understand | contexto
-understand -> decide | trade-offs
+understand -> learn
+learn -> decide | trade-offs
 decide -> implement
 implement -> production
-production -> learn | feedback
-learn ~> observe | feedback
+production ~> learn
 `;
 
-const graphMarkup = applyHandDrawnSkin(
-  compileGraphSvg(parseGraph(source), {
-    serpentineColumns: 3,
-    viewport: 'content',
-    viewportPadding: 30
-  })
-).replace(
+const HERO_FEEDBACK_PATH = 'M 244 142 C 330 132 438 94 500 78';
+
+const compiledGraph = compileGraphSvg(parseGraph(source), {
+  serpentineColumns: 3,
+  viewport: 'content',
+  viewportPadding: 30
+}).replace(
+  /(<g class="graph-edge graph-edge--feedback"><path d=")[^"]+(" marker-end=)/,
+  `$1${HERO_FEEDBACK_PATH}$2`
+);
+
+const graphMarkup = applyHandDrawnSkin(compiledGraph).replace(
   'class="article-graph"',
   'class="article-graph hero-graph"'
 );
