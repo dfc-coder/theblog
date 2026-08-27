@@ -12,6 +12,22 @@ const roughFilter = (id: string): string => `<filter id="${id}" x="-5%" y="-14%"
   <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.15" xChannelSelector="R" yChannelSelector="G"/>
 </filter>`;
 
+const EDGE_LABEL_PATTERN = /<text class="graph-edge-label"[^>]*>.*?<\/text>/g;
+
+const hoistEdgeLabels = (markup: string): string => {
+  const labels: string[] = [];
+  const withoutLabels = markup.replace(EDGE_LABEL_PATTERN, (label) => {
+    labels.push(label);
+    return '';
+  });
+
+  if (labels.length === 0) {
+    return withoutLabels;
+  }
+
+  return withoutLabels.replace('</svg>', `  <g class="graph-edge-labels">${labels.join('')}</g>\n</svg>`);
+};
+
 /**
  * Adds a deterministic hand-drawn treatment without changing the compiler layout.
  * Geometry stays editorial and precise; only the rendered strokes are displaced
@@ -24,8 +40,7 @@ export function applyHandDrawnSkin(markup: string): string {
   }
 
   const roughId = `${arrowId}-rough`;
-
-  return markup
+  const sketched = markup
     .replace(
       '<figure class="article-graph"',
       '<figure class="article-graph" data-graph-skin="handwrite"'
@@ -45,6 +60,8 @@ export function applyHandDrawnSkin(markup: string): string {
       'class="graph-arrow"/>',
       `class="graph-arrow" filter="url(#${roughId})"/>`
     );
+
+  return hoistEdgeLabels(sketched);
 }
 
 /**
