@@ -21,7 +21,7 @@ const {
 } = Astro.props as Props;
 
 const siteUrl = Astro.site ?? new URL(Astro.url.origin);
-const canonicalUrl = new URL(canonicalPath, siteUrl);
+const canonicalUrl = new URL(canonicalPath, siteUrl).href;
 ---
 
 <!doctype html>
