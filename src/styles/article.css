@@ -25,7 +25,7 @@
 }
 
 .article-rule {
-  min-height: 42px;
+  min-height: 2.625rem;
 }
 
 .article-content {
@@ -49,7 +49,7 @@
 .article-content h2 {
   margin: clamp(4.5rem, 7vw, 6rem) 0 1.5rem;
   padding-top: 1.25rem;
-  border-top: 2px solid var(--accent);
+  border-top: 0.125rem solid var(--accent);
   font-size: clamp(2.35rem, 3.4vw, 3.35rem);
   font-weight: 800;
   letter-spacing: -0.055em;
@@ -82,7 +82,7 @@
 .article-content blockquote {
   margin: 3rem 0 3.5rem;
   padding: 0.15rem 0 0.15rem 1.5rem;
-  border-left: 5px solid var(--accent);
+  border-left: 0.3125rem solid var(--accent);
   font-family: Arial, Helvetica, sans-serif;
   font-size: clamp(1.35rem, 1.8vw, 1.65rem);
   font-weight: 700;
@@ -98,7 +98,7 @@
 .article-content pre {
   margin: 2.5rem 0 3.25rem;
   padding: clamp(1.25rem, 3vw, 1.8rem);
-  border-width: 1px 1px 1px 4px;
+  border-width: 0.0625rem 0.0625rem 0.0625rem 0.25rem;
   border-left-color: var(--accent);
   font-size: clamp(0.9rem, 1vw, 1rem);
   line-height: 1.55;
@@ -116,13 +116,13 @@
 .article-content th,
 .article-content td {
   padding: 0.8rem 0.7rem;
-  border-bottom: 1px solid var(--article-line);
+  border-bottom: 0.0625rem solid var(--article-line);
   text-align: left;
   vertical-align: top;
 }
 
 .article-content th {
-  border-top: 2px solid var(--article-text);
+  border-top: 0.125rem solid var(--article-text);
   font-size: 0.82em;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -132,7 +132,7 @@
   margin: 4.5rem 0;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 45rem) {
   .article-header {
     padding-top: 2.75rem;
     padding-bottom: 3rem;
