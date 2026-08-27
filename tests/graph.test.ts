@@ -48,4 +48,12 @@ describe('graph DSL', () => {
     expect(svg).toMatch(/<svg[^>]+width="\d+" height="\d+" viewBox="0 0 \d+ \d+"/);
     expect(svg).not.toContain('style="min-width:');
   });
+
+  it('uses the same module width for short and long labels', () => {
+    const short = compileGraphSvg(parseGraph('a: A'));
+    const long = compileGraphSvg(parseGraph('a: CONTEXT ASSEMBLER'));
+
+    expect(short).toContain('width="188" height="46"');
+    expect(long).toContain('width="188" height="46"');
+  });
 });
