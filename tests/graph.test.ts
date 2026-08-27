@@ -82,6 +82,35 @@ describe('graph DSL', () => {
     expect(svg).toContain('width="720"');
   });
 
+  it('can tighten a serpentine viewport and force a hero-specific column count', () => {
+    const svg = compileGraphSvg(
+      parseGraph(`
+        a: REALITY
+        b: OBSERVE
+        c: UNDERSTAND
+        d: DECIDE
+        e: BUILD
+        f: PRODUCTION
+        g: LEARN
+        a -> b
+        b -> c
+        c -> d
+        d -> e
+        e -> f
+        f -> g
+      `),
+      {
+        serpentineColumns: 3,
+        viewport: 'content',
+        viewportPadding: 30
+      }
+    );
+
+    expect(svg).toContain('data-graph-layout="serpentine"');
+    expect(svg).not.toContain('viewBox="0 0 720');
+    expect(svg).toMatch(/<svg[^>]+width="\d+" height="\d+" viewBox="\d+(?:\.\d+)? \d+(?:\.\d+)? \d+(?:\.\d+)? \d+(?:\.\d+)?"/);
+  });
+
   it('uses a balanced fanout composition for one-to-many diagrams', () => {
     const svg = compileGraphSvg(
       parseGraph(`
