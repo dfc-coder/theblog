@@ -1,5 +1,11 @@
 import { compileGraphSvg } from './compiler';
 import { parseGraph } from './parser';
+import {
+  roughArrowHead,
+  roughHatching,
+  roughNodeBox,
+  roughOrthogonalStroke
+} from './rough';
 
 type CodeNode = {
   readonly type: 'code';
@@ -7,12 +13,10 @@ type CodeNode = {
   readonly value: string;
 };
 
-const roughFilter = (id: string): string => `<filter id="${id}" x="-5%" y="-14%" width="110%" height="128%">
-  <feTurbulence type="fractalNoise" baseFrequency="0.014 0.045" numOctaves="2" seed="11" result="noise"/>
-  <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.15" xChannelSelector="R" yChannelSelector="G"/>
-</filter>`;
-
 const EDGE_LABEL_PATTERN = /<text class="graph-edge-label"[^>]*>.*?<\/text>/g;
+const NODE_PATTERN = /<g class="graph-node graph-node--([a-z-]+)">\s*<rect x="([^"]+)" y="([^"]+)" width="([^"]+)" height="([^"]+)" rx="4"\/>\s*(<text[\s\S]*?<\/text>)\s*<\/g>/g;
+const EDGE_PATTERN = /<g class="graph-edge"><path d="([^"]+)" marker-end="[^"]+"\/>(.*?)<\/g>/g;
+const MARKER_PATTERN = /\s*<marker id="graph-arrow-[^"]+"[\s\S]*?<\/marker>\s*/g;
 
 const hoistEdgeLabels = (markup: string): string => {
   const labels: string[] = [];
@@ -25,41 +29,69 @@ const hoistEdgeLabels = (markup: string): string => {
     return withoutLabels;
   }
 
-  return withoutLabels.replace('</svg>', `  <g class="graph-edge-labels">${labels.join('')}</g>\n</svg>`);
+  return withoutLabels.replace(
+    '</svg>',
+    `  <g class="graph-edge-labels">${labels.join('')}</g>\n</svg>`
+  );
+};
+
+const renderRoughNodes = (markup: string, graphKey: string): string =>
+  markup.replace(
+    NODE_PATTERN,
+    (_match, kind: string, rawX: string, rawY: string, rawWidth: string, rawHeight: string, text: string) => {
+      const x = Number(rawX);
+      const y = Number(rawY);
+      const width = Number(rawWidth);
+      const height = Number(rawHeight);
+      const nodeKey = `${graphKey}:node:${x}:${y}:${width}:${height}`;
+      const box = roughNodeBox(x, y, width, height, nodeKey);
+      const hatching = roughHatching(x, y, width, height, `${nodeKey}:hatch`)
+        .map((path) => `<path class="graph-hatch" d="${path}"/>`)
+        .join('');
+
+      return `<g class="graph-node graph-node--${kind}" data-node-width="${width}" data-node-height="${height}">
+  <path class="graph-node-shape" d="${box.primary}"/>
+  <path class="graph-node-echo" d="${box.secondary}"/>
+  <g class="graph-hatching">${hatching}</g>
+  ${text}
+</g>`;
+    }
+  );
+
+const renderRoughEdges = (markup: string, graphKey: string): string => {
+  let edgeIndex = 0;
+
+  return markup.replace(EDGE_PATTERN, (_match, path: string, tail: string) => {
+    const edgeKey = `${graphKey}:edge:${edgeIndex}`;
+    edgeIndex += 1;
+    const stroke = roughOrthogonalStroke(path, edgeKey);
+    const arrow = roughArrowHead(stroke.points, `${edgeKey}:arrow`);
+
+    return `<g class="graph-edge">
+  <path class="graph-edge-stroke graph-edge-stroke--primary" d="${stroke.primary}"/>
+  <path class="graph-edge-stroke graph-edge-stroke--secondary" d="${stroke.secondary}"/>
+  <path class="graph-arrow-hand graph-arrow-hand--primary" d="${arrow.primary}"/>
+  <path class="graph-arrow-hand graph-arrow-hand--secondary" d="${arrow.secondary}"/>
+  ${tail}
+</g>`;
+  });
 };
 
 /**
- * Adds a deterministic hand-drawn treatment without changing the compiler layout.
- * Geometry stays editorial and precise; only the rendered strokes are displaced
- * and echoed so diagrams retain the same composition while feeling hand sketched.
+ * Replaces perfect SVG primitives with deterministic hand-drawn geometry while
+ * preserving the compiler's positions, dimensions and graph layout.
  */
 export function applyHandDrawnSkin(markup: string): string {
-  const arrowId = markup.match(/id="(graph-arrow-[A-Za-z0-9-]+)"/)?.[1];
-  if (!arrowId) {
-    return markup;
-  }
+  const graphKey = markup.match(/id="(graph-arrow-[A-Za-z0-9-]+)"/)?.[1] ?? 'graph';
 
-  const roughId = `${arrowId}-rough`;
-  const sketched = markup
-    .replace(
-      '<figure class="article-graph"',
-      '<figure class="article-graph" data-graph-skin="handwrite"'
-    )
-    .replace('<defs>', `<defs>\n    ${roughFilter(roughId)}`)
-    .replace(/<rect ([^>]+?)\/>/g, (_match, attributes: string) =>
-      `<rect ${attributes} filter="url(#${roughId})"/><rect class="graph-sketch-echo" ${attributes} filter="url(#${roughId})" transform="translate(0.8 -0.55)"/>`
-    )
-    .replace(
-      /<g class="graph-edge"><path ([^>]+?)\/?>(.*?)<\/g>/g,
-      (_match, attributes: string, tail: string) => {
-        const echoAttributes = attributes.replace(/\smarker-end="[^"]+"/, '');
-        return `<g class="graph-edge"><path ${attributes} filter="url(#${roughId})"/><path class="graph-sketch-echo" ${echoAttributes} filter="url(#${roughId})" transform="translate(0.65 -0.45)"/>${tail}</g>`;
-      }
-    )
-    .replace(
-      'class="graph-arrow"/>',
-      `class="graph-arrow" filter="url(#${roughId})"/>`
-    );
+  let sketched = markup.replace(
+    '<figure class="article-graph"',
+    '<figure class="article-graph" data-graph-skin="handwrite"'
+  );
+
+  sketched = renderRoughEdges(sketched, graphKey);
+  sketched = renderRoughNodes(sketched, graphKey);
+  sketched = sketched.replace(MARKER_PATTERN, '\n');
 
   return hoistEdgeLabels(sketched);
 }
