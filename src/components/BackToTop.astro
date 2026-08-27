@@ -15,10 +15,11 @@
   if (button) {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let ticking = false;
+    let scrollingToTop = false;
 
     const updateVisibility = () => {
       const threshold = Math.max(window.innerHeight * 0.75, 560);
-      button.hidden = window.scrollY < threshold;
+      button.hidden = !scrollingToTop && window.scrollY < threshold;
       ticking = false;
     };
 
@@ -31,13 +32,48 @@
       window.requestAnimationFrame(updateVisibility);
     };
 
-    button.addEventListener('click', () => {
-      window.scrollTo({
-        top: 0,
-        behavior: reducedMotion.matches ? 'auto' : 'smooth'
-      });
-    });
+    const easeOutQuint = (progress: number): number => 1 - Math.pow(1 - progress, 5);
 
+    const scrollToTop = () => {
+      if (reducedMotion.matches) {
+        window.scrollTo(0, 0);
+        return;
+      }
+
+      const startY = window.scrollY;
+      if (startY <= 0) {
+        return;
+      }
+
+      const duration = Math.min(760, Math.max(420, startY * 0.22));
+      const startedAt = performance.now();
+      scrollingToTop = true;
+      button.hidden = false;
+
+      const step = (now: number) => {
+        const progress = Math.min((now - startedAt) / duration, 1);
+        const eased = easeOutQuint(progress);
+        window.scrollTo(0, startY * (1 - eased));
+
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+          return;
+        }
+
+        window.scrollTo(0, 0);
+        button.classList.add('back-to-top--settle');
+
+        window.setTimeout(() => {
+          scrollingToTop = false;
+          button.classList.remove('back-to-top--settle');
+          updateVisibility();
+        }, 260);
+      };
+
+      window.requestAnimationFrame(step);
+    };
+
+    button.addEventListener('click', scrollToTop);
     window.addEventListener('scroll', handleScroll, { passive: true });
     updateVisibility();
   }
@@ -81,6 +117,10 @@
     transform: translateY(-2px);
   }
 
+  .back-to-top--settle {
+    animation: back-to-top-settle 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
   .back-to-top span:last-child {
     color: var(--accent);
     font-size: 0.9rem;
@@ -89,6 +129,24 @@
 
   .back-to-top:hover span:last-child {
     color: inherit;
+  }
+
+  @keyframes back-to-top-settle {
+    0% {
+      transform: translateY(0);
+    }
+
+    45% {
+      transform: translateY(-7px);
+    }
+
+    72% {
+      transform: translateY(2px);
+    }
+
+    100% {
+      transform: translateY(0);
+    }
   }
 
   @media (max-width: 760px) {
@@ -101,6 +159,10 @@
   @media (prefers-reduced-motion: reduce) {
     .back-to-top {
       transition: none;
+    }
+
+    .back-to-top--settle {
+      animation: none;
     }
   }
 </style>
