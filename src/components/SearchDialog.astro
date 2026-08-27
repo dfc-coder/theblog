@@ -1,0 +1,99 @@
+---
+import type { BlogPost } from '../lib/blog';
+import { getPostPath } from '../lib/blog';
+
+interface Props {
+  posts: BlogPost[];
+}
+
+const { posts } = Astro.props as Props;
+---
+
+<button class="search-trigger" type="button" data-search-open aria-haspopup="dialog">
+  <span>Buscar</span>
+  <kbd>⌘K</kbd>
+</button>
+
+<dialog class="search-dialog" data-search-dialog aria-labelledby="search-title">
+  <div class="search-panel">
+    <div class="search-heading">
+      <div>
+        <p class="micro-label">INDEX / SEARCH</p>
+        <h2 id="search-title">Buscar en el archivo</h2>
+      </div>
+      <button class="icon-button" type="button" data-search-close aria-label="Cerrar búsqueda">×</button>
+    </div>
+
+    <label class="search-field">
+      <span class="sr-only">Buscar artículos</span>
+      <input
+        type="search"
+        placeholder="arquitectura, agentes, MuleSoft…"
+        autocomplete="off"
+        data-search-input
+      />
+    </label>
+
+    <div class="search-results" data-search-results>
+      {posts.map((post, index) => {
+        const searchable = `${post.data.title} ${post.data.description} ${post.data.tags.join(' ')}`.toLowerCase();
+        return (
+          <a class="search-result" href={getPostPath(post)} data-search-item data-search-text={searchable}>
+            <span class="search-result-index">{String(index + 1).padStart(2, '0')}</span>
+            <span>
+              <strong>{post.data.title}</strong>
+              <small>{post.data.description}</small>
+            </span>
+          </a>
+        );
+      })}
+      <p class="search-empty" data-search-empty hidden>No encontré artículos con ese criterio.</p>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.querySelector('[data-search-dialog]');
+  const openButton = document.querySelector('[data-search-open]');
+  const closeButton = document.querySelector('[data-search-close]');
+  const input = document.querySelector('[data-search-input]');
+  const items = Array.from(document.querySelectorAll('[data-search-item]'));
+  const empty = document.querySelector('[data-search-empty]');
+
+  const openSearch = () => {
+    if (!(dialog instanceof HTMLDialogElement)) return;
+    dialog.showModal();
+    requestAnimationFrame(() => {
+      if (input instanceof HTMLInputElement) input.focus();
+    });
+  };
+
+  const closeSearch = () => {
+    if (dialog instanceof HTMLDialogElement) dialog.close();
+  };
+
+  openButton?.addEventListener('click', openSearch);
+  closeButton?.addEventListener('click', closeSearch);
+
+  document.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      openSearch();
+    }
+  });
+
+  input?.addEventListener('input', () => {
+    if (!(input instanceof HTMLInputElement)) return;
+    const query = input.value.trim().toLowerCase();
+    let visibleCount = 0;
+
+    items.forEach((item) => {
+      if (!(item instanceof HTMLElement)) return;
+      const matches = !query || item.dataset.searchText?.includes(query);
+      item.hidden = !matches;
+      if (matches) visibleCount += 1;
+    });
+
+    if (empty instanceof HTMLElement) empty.hidden = visibleCount !== 0;
+  });
+</script>
