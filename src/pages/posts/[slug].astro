@@ -1,23 +1,24 @@
 ---
-import type { CollectionEntry } from "astro:content";
-import { getCollection, render } from "astro:content";
-import BaseLayout from "../../layouts/BaseLayout.astro";
+import type { CollectionEntry } from 'astro:content';
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
 import {
   getPostPath,
   getPublishedPosts,
-  resolvePostSlug,
-} from "../../lib/blog";
+  resolvePostSlug
+} from '../../lib/blog';
+import { SITE } from '../../lib/site';
 
 type Props = {
-  entry: CollectionEntry<"blog">;
+  entry: CollectionEntry<'blog'>;
 };
 
 export async function getStaticPaths() {
-  const posts = getPublishedPosts(await getCollection("blog"));
+  const posts = getPublishedPosts(await getCollection('blog'));
 
   return posts.map((entry) => ({
     params: { slug: resolvePostSlug(entry) },
-    props: { entry },
+    props: { entry }
   }));
 }
 
@@ -27,12 +28,14 @@ const canonicalPath = getPostPath(entry);
 ---
 
 <BaseLayout
-  title={`${entry.data.title} • miblog`}
+  title={`${entry.data.title} · ${SITE.name}`}
   description={entry.data.description}
+  canonicalPath={canonicalPath}
+  type="article"
 >
   <article class="container article-shell">
     <p class="meta">
-      {entry.data.pubDate.toLocaleDateString("es-AR", { dateStyle: "long" })}
+      {entry.data.pubDate.toLocaleDateString('es-AR', { dateStyle: 'long' })}
     </p>
     <h1>{entry.data.title}</h1>
     <p>{entry.data.description}</p>
@@ -50,9 +53,5 @@ const canonicalPath = getPostPath(entry);
     <div class="article-content">
       <Content />
     </div>
-
-    <p class="meta">
-      URL canónica: <a href={canonicalPath}>{canonicalPath}</a>
-    </p>
   </article>
 </BaseLayout>
