@@ -1,5 +1,6 @@
 export type GraphDirection = 'TB' | 'LR';
 export type GraphNodeKind = 'default' | 'terminal' | 'accent' | 'muted';
+export type GraphLayoutKind = 'serpentine' | 'layered-tb' | 'layered-lr' | 'fanout';
 
 export interface GraphNode {
   readonly id: string;
@@ -29,6 +30,7 @@ export interface PositionedNode extends GraphNode {
 }
 
 export interface GraphLayout {
+  readonly kind: GraphLayoutKind;
   readonly width: number;
   readonly height: number;
   readonly nodes: readonly PositionedNode[];
