@@ -10,13 +10,15 @@ direction: LR
 
 reality[terminal]: REALIDAD
 observe: OBSERVAR
+understand: ENTENDER
 decide: DECIDIR
 build: IMPLEMENTAR
 production[accent]: PRODUCCIÓN
 learn[muted]: APRENDER
 
 reality -> observe | señales
-observe -> decide | trade-offs
+observe -> understand | contexto
+understand -> decide | trade-offs
 decide -> build
 build -> production
 production -> learn | feedback
