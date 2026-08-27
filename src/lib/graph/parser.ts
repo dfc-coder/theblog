@@ -7,7 +7,8 @@ import type {
 } from './model';
 
 const NODE_PATTERN = /^([A-Za-z][A-Za-z0-9_-]*)(?:\[(default|terminal|accent|muted)\])?\s*:\s*(.+)$/;
-const EDGE_PATTERN = /^([A-Za-z][A-Za-z0-9_-]*)\s*->\s*([A-Za-z][A-Za-z0-9_-]*)(?:\s*\|\s*(.+))?$/;
+const STANDARD_EDGE_PATTERN = /^([A-Za-z][A-Za-z0-9_-]*)\s*->\s*([A-Za-z][A-Za-z0-9_-]*)(?:\s*\|\s*(.+))?$/;
+const FEEDBACK_EDGE_PATTERN = /^([A-Za-z][A-Za-z0-9_-]*)\s*~>\s*([A-Za-z][A-Za-z0-9_-]*)(?:\s*\|\s*(.+))?$/;
 
 const decodeLabel = (value: string): string => value.trim().replaceAll('\\n', '\n');
 
@@ -48,9 +49,25 @@ export function parseGraph(source: string): GraphDefinition {
       continue;
     }
 
-    const edgeMatch = line.match(EDGE_PATTERN);
-    if (edgeMatch) {
-      const [, from, to, label] = edgeMatch;
+    const feedbackEdgeMatch = line.match(FEEDBACK_EDGE_PATTERN);
+    if (feedbackEdgeMatch) {
+      const [, from, to, label] = feedbackEdgeMatch;
+      if (!from || !to) {
+        throw new Error(`Graph line ${lineNumber}: invalid feedback edge.`);
+      }
+
+      edges.push({
+        from,
+        to,
+        ...(label ? { label: decodeLabel(label) } : {}),
+        kind: 'feedback'
+      });
+      continue;
+    }
+
+    const standardEdgeMatch = line.match(STANDARD_EDGE_PATTERN);
+    if (standardEdgeMatch) {
+      const [, from, to, label] = standardEdgeMatch;
       if (!from || !to) {
         throw new Error(`Graph line ${lineNumber}: invalid edge.`);
       }
@@ -58,7 +75,8 @@ export function parseGraph(source: string): GraphDefinition {
       edges.push({
         from,
         to,
-        ...(label ? { label: decodeLabel(label) } : {})
+        ...(label ? { label: decodeLabel(label) } : {}),
+        kind: 'default'
       });
       continue;
     }
