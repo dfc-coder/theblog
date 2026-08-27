@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Patrick+Hand&display=swap');
+
+:root {
+  --font-editorial: 'Bricolage Grotesque', Arial, Helvetica, sans-serif;
+  --font-system: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-hand: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-editorial);
+  font-optical-sizing: auto;
+}
+
+.hero h1,
+.article-header h1,
+.section-heading h2,
+.field-note h2,
+.post-card h3,
+.search-heading h2 {
+  font-family: var(--font-editorial);
+  font-optical-sizing: auto;
+}
+
+.hero h1 {
+  letter-spacing: -0.06em;
+  line-height: 0.89;
+}
+
+.article-header h1 {
+  letter-spacing: -0.058em;
+  line-height: 0.92;
+}
+
+.section-heading h2,
+.field-note h2,
+.post-card h3 {
+  letter-spacing: -0.045em;
+}
+
+.brand-index,
+.nav-list a,
+.search-trigger,
+.search-trigger kbd,
+.theme-switcher-label,
+.theme-option,
+.micro-label,
+.eyebrow,
+.visual-caption,
+.article-kicker,
+.archive-aside,
+.post-card-meta,
+.post-card-index,
+.tag-list li,
+.editorial-strip-inner,
+.article-back,
+.search-result-index,
+code,
+pre,
+kbd,
+samp,
+.article-content code,
+.article-content pre {
+  font-family: var(--font-system);
+  font-variant-ligatures: common-ligatures contextual;
+  font-feature-settings: 'liga' 1, 'calt' 1;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node text,
+.article-graph[data-graph-skin='handwrite'] .graph-edge-label {
+  font-family: var(--font-hand);
+  font-weight: 400;
+}
