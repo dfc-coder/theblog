@@ -275,12 +275,14 @@ export function compileGraphSvg(graph: GraphDefinition): string {
 
   const title = graph.title ? `<figcaption>${escapeHtml(graph.title)}</figcaption>` : '';
   const aria = graph.title ? ` aria-label="${escapeHtml(graph.title)}"` : ' aria-label="Architecture diagram"';
-  const minWidth = Math.min(Math.ceil(layout.width), 640);
+  const svgWidth = Math.ceil(layout.width);
+  const svgHeight = Math.ceil(layout.height);
 
   return `<figure class="article-graph">
 ${title}
 <div class="article-graph__viewport">
-<svg class="article-graph__svg" viewBox="0 0 ${Math.ceil(layout.width)} ${Math.ceil(layout.height)}" role="img"${aria} style="min-width:${minWidth}px">
+<div class="article-graph__stage">
+<svg class="article-graph__svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" role="img"${aria}>
   <defs>
     <marker id="${arrowId}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 8 4 L 0 8 z" class="graph-arrow"/>
@@ -289,6 +291,7 @@ ${title}
   ${edges}
   ${nodes}
 </svg>
+</div>
 </div>
 </figure>`;
 }
