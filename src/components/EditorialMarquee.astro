@@ -1,0 +1,57 @@
+---
+import '../styles/marquee.css';
+
+const items = [
+  'PRODUCTION FIRST',
+  'ARCHITECTURE',
+  'AI SYSTEMS',
+  'INTEGRATIONS',
+  'OBSERVABILITY',
+  'RELIABILITY',
+  'SYSTEM DESIGN'
+] as const;
+---
+
+<section class="editorial-marquee" aria-label="Temas del blog" data-marquee>
+  <p class="sr-only">Temas del blog: {items.join(', ')}.</p>
+
+  <div class="marquee-viewport" aria-hidden="true">
+    <div class="marquee-track">
+      {[0, 1].map(() => (
+        <div class="marquee-group">
+          {items.map((item) => <span class="marquee-item">{item}</span>)}
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="marquee-toggle"
+    aria-pressed="false"
+    aria-label="Pausar marquesina"
+    data-marquee-toggle
+  >
+    <span class="marquee-toggle-icon" aria-hidden="true">Ⅱ</span>
+    <span class="sr-only" data-marquee-label>Pausar</span>
+  </button>
+</section>
+
+<script>
+  const marquee = document.querySelector<HTMLElement>('[data-marquee]');
+  const toggle = marquee?.querySelector<HTMLButtonElement>('[data-marquee-toggle]');
+  const label = toggle?.querySelector<HTMLElement>('[data-marquee-label]');
+
+  toggle?.addEventListener('click', () => {
+    if (!marquee || !toggle || !label) return;
+
+    const isPaused = marquee.dataset.paused === 'true';
+    const nextPaused = !isPaused;
+
+    marquee.dataset.paused = String(nextPaused);
+    toggle.setAttribute('aria-pressed', String(nextPaused));
+    toggle.setAttribute('aria-label', nextPaused ? 'Reanudar marquesina' : 'Pausar marquesina');
+    toggle.querySelector<HTMLElement>('.marquee-toggle-icon')!.textContent = nextPaused ? '▶' : 'Ⅱ';
+    label.textContent = nextPaused ? 'Reanudar' : 'Pausar';
+  });
+</script>
