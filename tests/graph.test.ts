@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { compileGraphSvg } from '../src/lib/graph/compiler';
+import { applyHandDrawnSkin } from '../src/lib/graph/markdown';
 import { parseGraph } from '../src/lib/graph/parser';
 
 describe('graph DSL', () => {
@@ -102,5 +103,18 @@ describe('graph DSL', () => {
 
     expect(svg).toContain('data-graph-layout="fanout"');
     expect(svg).toContain('width="720"');
+  });
+
+  it('adds a deterministic hand-drawn skin without changing layout geometry', () => {
+    const compiled = compileGraphSvg(
+      parseGraph('a[terminal]: VISITOR\nb[accent]: ROUTER\na -> b | request')
+    );
+    const sketched = applyHandDrawnSkin(compiled);
+
+    expect(sketched).toContain('data-graph-skin="handwrite"');
+    expect(sketched).toContain('<feTurbulence');
+    expect(sketched).toContain('graph-sketch-echo');
+    expect(sketched).toContain('width="720"');
+    expect(sketched).toContain('request');
   });
 });
