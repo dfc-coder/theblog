@@ -1,0 +1,31 @@
+---
+import { compileGraphSvg } from '../lib/graph/compiler';
+import { applyHandDrawnSkin } from '../lib/graph/markdown';
+import { parseGraph } from '../lib/graph/parser';
+import '../styles/hero-graph.css';
+
+const source = `
+title: Cómo se construyen estas notas
+direction: LR
+
+reality[terminal]: REALIDAD
+observe: OBSERVAR
+decide: DECIDIR
+build: IMPLEMENTAR
+production[accent]: PRODUCCIÓN
+learn[muted]: APRENDER
+
+reality -> observe | señales
+observe -> decide | trade-offs
+decide -> build
+build -> production
+production -> learn | feedback
+`;
+
+const graphMarkup = applyHandDrawnSkin(compileGraphSvg(parseGraph(source))).replace(
+  'class="article-graph"',
+  'class="article-graph hero-graph"'
+);
+---
+
+<div class="hero-graph-host" set:html={graphMarkup} />
