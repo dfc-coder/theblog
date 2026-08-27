@@ -33,24 +33,34 @@ const canonicalPath = getPostPath(entry);
   canonicalPath={canonicalPath}
   type="article"
 >
-  <article class="container article-shell">
-    <p class="meta">
-      {entry.data.pubDate.toLocaleDateString('es-AR', { dateStyle: 'long' })}
-    </p>
-    <h1>{entry.data.title}</h1>
-    <p>{entry.data.description}</p>
+  <article class="article-shell">
+    <header class="article-header container">
+      <a class="article-back" href="/#archivo">← Archivo</a>
+      <div class="article-kicker">
+        <span>ARTICLE / {entry.data.pubDate.getFullYear()}</span>
+        <time datetime={entry.data.pubDate.toISOString()}>
+          {entry.data.pubDate.toLocaleDateString('es-AR', { dateStyle: 'long' })}
+        </time>
+      </div>
+      <h1>{entry.data.title}</h1>
+      <p class="article-deck">{entry.data.description}</p>
 
-    {
-      entry.data.tags.length > 0 && (
-        <ul class="tag-list" aria-label="Etiquetas del post">
-          {entry.data.tags.map((tag: string) => (
-            <li>#{tag}</li>
-          ))}
-        </ul>
-      )
-    }
+      {
+        entry.data.tags.length > 0 && (
+          <ul class="tag-list" aria-label="Etiquetas del post">
+            {entry.data.tags.map((tag: string) => (
+              <li>{tag}</li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
 
-    <div class="article-content">
+    <div class="article-rule" aria-hidden="true">
+      <span>READ / THINK / BUILD</span>
+    </div>
+
+    <div class="article-content container">
       <Content />
     </div>
   </article>
