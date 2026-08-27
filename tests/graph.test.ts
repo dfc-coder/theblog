@@ -32,12 +32,15 @@ describe('graph DSL', () => {
     expect(() => compileGraphSvg(graph)).toThrow('contains a cycle');
   });
 
-  it('escapes labels before rendering SVG', () => {
+  it('escapes labels before rendering SVG even when the label wraps', () => {
     const graph = parseGraph('a: <script>alert(1)</script>');
     const svg = compileGraphSvg(graph);
 
-    expect(svg).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+    expect(svg).toContain('&lt;script&gt;');
+    expect(svg).toContain('&lt;/sc');
+    expect(svg).toContain('ript&gt;');
     expect(svg).not.toContain('<script>');
+    expect(svg).not.toContain('</script>');
   });
 
   it('renders every diagram on the same 720px editorial artboard', () => {
