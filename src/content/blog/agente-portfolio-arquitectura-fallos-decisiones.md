@@ -30,31 +30,23 @@ Por ejemplo, usar el modelo generativo sólo para decidir a qué parte del siste
 
 El flujo que terminé buscando es bastante más simple:
 
-```text
-VISITOR
-   │
-   ▼
-SEMANTIC ROUTER
-   │
-   ├── general ──────────────────────┐
-   │                                │
-   └── business                     │
-          │                         │
-          ▼                         │
-   PROFILE RETRIEVER                │
-          │                         │
-          ▼                         │
-   CONTEXT ASSEMBLER                │
-          │                         │
-          └──────────────┬──────────┘
-                         ▼
-                    QWEN3.5-2B
-                         │
-                         ▼
-                    STREAM GUARD
-                         │
-                         ▼
-                       SSE
+```graph
+title: Flujo principal del agente
+direction: TB
+visitor[terminal]: VISITOR
+router[accent]: SEMANTIC ROUTER
+retriever: PROFILE RETRIEVER
+assembler: CONTEXT ASSEMBLER
+llm[accent]: QWEN3.5-2B
+guard: STREAM GUARD
+sse[terminal]: SSE
+visitor -> router
+router -> retriever | business
+retriever -> assembler
+assembler -> llm
+router -> llm | general
+llm -> guard
+guard -> sse
 ```
 
 El LLM sigue siendo importante. Pero dejó de ser el lugar donde ocurre todo.
@@ -65,22 +57,20 @@ Para clasificar una consulta uso un segundo modelo pequeño: `Qwen3-Embedding-0.
 
 Las descripciones de las rutas se convierten en embeddings al iniciar el servicio y quedan cacheadas. En cada turno sólo hace falta generar el embedding de la consulta y comparar similitud coseno.
 
-```text
-route descriptions
-       │
-       ▼
- embeddings ── cached
-
-user message
-       │
-       ▼
- query embedding
-       │
-       ▼
- cosine similarity
-       │
-       ▼
-     route
+```graph
+title: Routing semántico con embeddings
+direction: TB
+routes[muted]: route descriptions
+message[terminal]: user message
+route_embeddings: route embeddings · cached
+query_embedding: query embedding
+similarity[accent]: cosine similarity
+route[terminal]: route
+routes -> route_embeddings
+message -> query_embedding
+route_embeddings -> similarity
+query_embedding -> similarity
+similarity -> route
 ```
 
 Esto separa dos problemas diferentes:
@@ -98,21 +88,16 @@ El perfil está estructurado en datos controlados: experiencia, proyectos, skill
 
 Ese perfil se divide en documentos pequeños y sus embeddings se calculan una sola vez durante el arranque.
 
-```text
-BUSINESS PROFILE
-│
-├── experience
-├── projects
-├── skills
-├── education
-├── certifications
-└── services
-        │
-        ▼
- small documents
-        │
-        ▼
- cached embeddings
+```graph
+title: Preparación del conocimiento profesional
+direction: TB
+profile[terminal]: BUSINESS PROFILE
+sections: experience · projects · skills\neducation · certifications · services
+documents: small documents
+embeddings[accent]: cached embeddings
+profile -> sections
+sections -> documents
+documents -> embeddings
 ```
 
 Cuando llega una pregunta profesional, el sistema recupera sólo los documentos más relevantes y los incorpora al contexto del modelo.
@@ -158,16 +143,18 @@ Pero el flujo real no lo necesitaba.
 
 Para el problema actual alcanzaba con:
 
-```text
-route
-  ↓
-retrieve when needed
-  ↓
-assemble context
-  ↓
-generate
-  ↓
-guard
+```graph
+title: Hot path mínimo
+direction: LR
+route[terminal]: route
+retrieve: retrieve when needed
+assemble: assemble context
+generate[accent]: generate
+guard[terminal]: guard
+route -> retrieve
+retrieve -> assemble
+assemble -> generate
+generate -> guard
 ```
 
 No usar una pieza no significa que sea mala. Significa que todavía no existe un problema que justifique su costo.

@@ -1,0 +1,220 @@
+.hero.container {
+  width: min(calc(100% - 2rem), 112rem);
+}
+
+.hero {
+  grid-template-columns: minmax(0, 1.02fr) minmax(38.75rem, 0.98fr);
+  gap: clamp(2rem, 3vw, 3.75rem);
+}
+
+.hero-visual {
+  display: flex;
+  width: min(52vw, 60rem);
+  min-width: 0;
+  flex-direction: column;
+  align-self: center;
+  justify-content: center;
+  margin-left: clamp(-6.5rem, -5vw, -3rem);
+  padding-top: clamp(0.25rem, 1vh, 0.75rem);
+}
+
+.hero-graph-host {
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.hero-graph {
+  --article-bg: var(--bg);
+  --article-text: var(--text);
+  --article-muted: var(--muted);
+  --article-line: var(--line);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.hero-graph figcaption {
+  display: none;
+}
+
+.hero-graph .article-graph__viewport {
+  width: 100%;
+  overflow: visible;
+}
+
+.hero-graph .article-graph__stage {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  justify-content: center;
+}
+
+.hero-graph .article-graph__svg {
+  width: 100%;
+  height: auto;
+  max-width: none;
+}
+
+.hero-graph .graph-node text {
+  font-size: 1.5625rem;
+}
+
+.hero-graph .graph-edge-label {
+  font-size: 1.1875rem;
+  stroke: var(--bg);
+  stroke-width: 0.4375rem;
+}
+
+.hero-graph .graph-node-shape {
+  stroke-width: 0.1375rem;
+}
+
+.hero-graph .graph-node-echo {
+  stroke-width: 0.06875rem;
+}
+
+.hero-graph .graph-edge-stroke--primary {
+  stroke-width: 0.125rem;
+}
+
+.hero-graph .graph-edge-stroke--secondary {
+  stroke-width: 0.0625rem;
+}
+
+.hero-graph .graph-arrow-hand--primary {
+  stroke-width: 0.13125rem;
+}
+
+.hero-graph .graph-arrow-hand--secondary {
+  stroke-width: 0.0625rem;
+}
+
+.hero-graph .graph-node--terminal .graph-node-shape {
+  fill: var(--surface-raised);
+  stroke: var(--text);
+}
+
+.hero-graph .graph-node--terminal .graph-node-echo {
+  stroke: var(--text);
+  opacity: 0.28;
+}
+
+.hero-graph .graph-node--terminal text {
+  fill: var(--text);
+}
+
+.hero-graph .graph-node--terminal .graph-hatch {
+  stroke: var(--muted);
+  opacity: 0.42;
+}
+
+.hero-graph .graph-node--accent .graph-node-shape {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.hero-graph .graph-node--accent text {
+  fill: var(--accent-ink);
+}
+
+.hero-graph .graph-node--muted .graph-node-shape {
+  fill: transparent;
+  stroke: var(--muted);
+  stroke-dasharray: 6 4;
+}
+
+.hero-graph .graph-edge-stroke,
+.hero-graph .graph-arrow-hand {
+  stroke: var(--art);
+}
+
+.hero-graph .graph-hatch {
+  stroke: var(--muted);
+}
+
+.hero-visual .visual-caption {
+  margin-top: 1rem;
+}
+
+@media (max-width: 85rem) {
+  .hero-visual {
+    width: min(50vw, 51.25rem);
+    margin-left: clamp(-4rem, -3vw, -1.5rem);
+  }
+
+  .hero-graph .graph-node text {
+    font-size: 1.375rem;
+  }
+
+  .hero-graph .graph-edge-label {
+    font-size: 1.0625rem;
+  }
+}
+
+@media (max-width: 73.75rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(31.25rem, 1fr);
+    gap: clamp(2rem, 3vw, 3rem);
+  }
+
+  .hero-visual {
+    width: min(49vw, 45rem);
+    margin-left: -1.5rem;
+  }
+
+  .hero-graph .graph-node text {
+    font-size: 1.25rem;
+  }
+
+  .hero-graph .graph-edge-label {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 61.25rem) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 2.75rem;
+  }
+
+  .hero-visual {
+    width: min(100%, 56.25rem);
+    margin-left: auto;
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 47.5rem) {
+  .hero.container {
+    width: min(calc(100% - 2rem), 88rem);
+  }
+
+  .hero-visual {
+    width: 100%;
+    margin-inline: auto;
+  }
+
+  .hero-graph .article-graph__stage {
+    padding: 0;
+    justify-content: flex-start;
+  }
+
+  .hero-graph .article-graph__svg {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .hero-graph .graph-node text {
+    font-size: 1.125rem;
+  }
+
+  .hero-graph .graph-edge-label {
+    font-size: 0.875rem;
+  }
+
+  .hero-visual .visual-caption {
+    margin-top: 0.5rem;
+  }
+}

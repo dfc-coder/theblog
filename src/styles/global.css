@@ -74,7 +74,7 @@ html {
 
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: 20rem;
   background: var(--bg);
 }
 
@@ -95,8 +95,8 @@ a {
 a:focus-visible,
 button:focus-visible,
 input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 4px;
+  outline: 0.125rem solid var(--accent);
+  outline-offset: 0.25rem;
 }
 
 ::selection {
@@ -122,12 +122,12 @@ input:focus-visible {
 .site-header {
   position: relative;
   z-index: 20;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 0.0625rem solid var(--line);
   background: var(--bg);
 }
 
 .header-inner {
-  min-height: 78px;
+  min-height: 4.875rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -196,7 +196,7 @@ input:focus-visible {
 
 .search-trigger kbd {
   padding: 0.16rem 0.35rem;
-  border: 1px solid var(--line);
+  border: 0.0625rem solid var(--line);
   color: var(--muted);
   font: inherit;
   font-size: 0.62rem;
@@ -228,16 +228,16 @@ input:focus-visible {
 
 .theme-options {
   display: flex;
-  border: 1px solid var(--line);
+  border: 0.0625rem solid var(--line);
 }
 
 .theme-option {
-  width: 30px;
-  height: 30px;
+  width: 1.875rem;
+  height: 1.875rem;
   display: grid;
   place-items: center;
   border: 0;
-  border-right: 1px solid var(--line);
+  border-right: 0.0625rem solid var(--line);
   background: var(--bg);
   color: var(--muted);
   cursor: pointer;
@@ -256,9 +256,9 @@ input:focus-visible {
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(22.5rem, 0.92fr);
   gap: clamp(3rem, 8vw, 8rem);
-  min-height: min(820px, calc(100vh - 78px));
+  min-height: min(51.25rem, calc(100vh - 4.875rem));
   align-items: center;
   padding-block: clamp(4rem, 8vw, 8rem);
 }
@@ -281,7 +281,7 @@ input:focus-visible {
 }
 
 .hero h1 {
-  max-width: 900px;
+  max-width: 56.25rem;
   margin: 0;
   font-size: clamp(3.4rem, 7.7vw, 8.8rem);
   font-weight: 700;
@@ -302,7 +302,7 @@ input:focus-visible {
   gap: 0.7rem;
   align-items: center;
   padding-bottom: 0.25rem;
-  border-bottom: 1px solid var(--accent);
+  border-bottom: 0.0625rem solid var(--accent);
   color: var(--text);
   font-size: 0.74rem;
   font-weight: 700;
@@ -327,7 +327,7 @@ input:focus-visible {
 .editorial-artwork svg {
   display: block;
   width: 100%;
-  max-height: 690px;
+  max-height: 43.125rem;
   overflow: visible;
 }
 
@@ -346,7 +346,8 @@ input:focus-visible {
 
 .art-orbit {
   stroke-width: 1.2;
-  transform-origin: 392px 352px;
+  transform-box: view-box;
+  transform-origin: center;
   transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -366,7 +367,7 @@ input:focus-visible {
 .art-annotations {
   fill: currentColor;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 13px;
+  font-size: 0.8125rem;
   letter-spacing: 0.08em;
 }
 
@@ -375,7 +376,7 @@ input:focus-visible {
   justify-content: space-between;
   margin: -0.6rem 0 0;
   padding-top: 0.8rem;
-  border-top: 1px solid var(--line);
+  border-top: 0.0625rem solid var(--line);
   color: var(--muted);
 }
 
@@ -384,12 +385,12 @@ input:focus-visible {
 }
 
 .editorial-strip {
-  border-block: 1px solid var(--line);
+  border-block: 0.0625rem solid var(--line);
   overflow: hidden;
 }
 
 .editorial-strip-inner {
-  min-height: 56px;
+  min-height: 3.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -415,12 +416,12 @@ input:focus-visible {
 
 .section-heading {
   display: grid;
-  grid-template-columns: 1fr minmax(220px, 0.36fr);
+  grid-template-columns: 1fr minmax(13.75rem, 0.36fr);
   gap: 2rem;
   align-items: end;
   margin-bottom: clamp(2rem, 5vw, 4rem);
   padding-bottom: 1.4rem;
-  border-bottom: 1px solid var(--line-strong);
+  border-bottom: 0.0625rem solid var(--line-strong);
 }
 
 .micro-label {
@@ -452,15 +453,15 @@ input:focus-visible {
 .post-card {
   position: relative;
   display: grid;
-  grid-template-columns: 90px minmax(0, 1fr) 64px;
+  grid-template-columns: 5.625rem minmax(0, 1fr) 4rem;
   gap: 1.5rem;
   align-items: start;
   padding-block: clamp(2rem, 4vw, 3.5rem);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 0.0625rem solid var(--line);
 }
 
 .post-card:first-child {
-  border-top: 1px solid var(--line);
+  border-top: 0.0625rem solid var(--line);
 }
 
 .post-card-index {
@@ -518,7 +519,7 @@ input:focus-visible {
 
 .tag-list li {
   padding: 0.28rem 0.5rem;
-  border: 1px solid var(--line);
+  border: 0.0625rem solid var(--line);
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.62rem;
@@ -528,12 +529,12 @@ input:focus-visible {
 }
 
 .post-card-arrow {
-  width: 52px;
-  height: 52px;
+  width: 3.25rem;
+  height: 3.25rem;
   display: grid;
   place-items: center;
   justify-self: end;
-  border: 1px solid var(--line);
+  border: 0.0625rem solid var(--line);
   color: var(--text);
   font-size: 1.1rem;
   text-decoration: none;
@@ -548,11 +549,11 @@ input:focus-visible {
 
 .field-note {
   display: grid;
-  grid-template-columns: minmax(140px, 0.25fr) minmax(0, 1fr);
+  grid-template-columns: minmax(8.75rem, 0.25fr) minmax(0, 1fr);
   gap: 3rem;
   margin-bottom: clamp(6rem, 12vw, 12rem);
   padding-top: 2rem;
-  border-top: 1px solid var(--line-strong);
+  border-top: 0.0625rem solid var(--line-strong);
 }
 
 .field-note > div {
@@ -572,10 +573,10 @@ input:focus-visible {
 }
 
 .empty-state {
-  min-height: 260px;
+  min-height: 16.25rem;
   display: grid;
   place-items: center;
-  border-block: 1px solid var(--line);
+  border-block: 0.0625rem solid var(--line);
   color: var(--muted);
   text-align: center;
 }
@@ -586,7 +587,7 @@ input:focus-visible {
 }
 
 .site-footer {
-  border-top: 1px solid var(--line);
+  border-top: 0.0625rem solid var(--line);
   background: var(--surface);
 }
 
@@ -633,10 +634,10 @@ input:focus-visible {
 }
 
 .search-dialog {
-  width: min(760px, calc(100% - 2rem));
-  max-height: min(760px, calc(100vh - 2rem));
+  width: min(47.5rem, calc(100% - 2rem));
+  max-height: min(47.5rem, calc(100vh - 2rem));
   padding: 0;
-  border: 1px solid var(--line-strong);
+  border: 0.0625rem solid var(--line-strong);
   background: var(--surface-raised);
   color: var(--text);
 }
@@ -664,9 +665,9 @@ input:focus-visible {
 }
 
 .icon-button {
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--line);
+  width: 2.625rem;
+  height: 2.625rem;
+  border: 0.0625rem solid var(--line);
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
@@ -682,7 +683,7 @@ input:focus-visible {
   width: 100%;
   padding: 1rem 0;
   border: 0;
-  border-bottom: 1px solid var(--line-strong);
+  border-bottom: 0.0625rem solid var(--line-strong);
   border-radius: 0;
   background: var(--surface-raised);
   color: var(--text);
@@ -700,10 +701,10 @@ input:focus-visible {
 
 .search-result {
   display: grid;
-  grid-template-columns: 48px 1fr;
+  grid-template-columns: 3rem 1fr;
   gap: 1rem;
   padding-block: 1.2rem;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 0.0625rem solid var(--line);
   text-decoration: none;
 }
 
@@ -739,10 +740,10 @@ input:focus-visible {
 
 .sr-only {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: 0.0625rem;
+  height: 0.0625rem;
   padding: 0;
-  margin: -1px;
+  margin: -0.0625rem;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
@@ -781,7 +782,7 @@ input:focus-visible {
   gap: 1rem;
   max-width: 72rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--article-line);
+  border-bottom: 0.0625rem solid var(--article-line);
   color: var(--article-muted);
 }
 
@@ -812,11 +813,11 @@ input:focus-visible {
 }
 
 .article-rule {
-  min-height: 48px;
+  min-height: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-block: 1px solid var(--article-line);
+  border-block: 0.0625rem solid var(--article-line);
   color: var(--article-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.62rem;
@@ -847,7 +848,7 @@ input:focus-visible {
 .article-content h2 {
   margin: 4.5rem 0 1.3rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--article-line);
+  border-top: 0.0625rem solid var(--article-line);
   font-size: clamp(2rem, 4vw, 3.2rem);
 }
 
@@ -864,14 +865,14 @@ input:focus-visible {
 .article-content a {
   color: var(--article-text);
   text-decoration-color: var(--accent);
-  text-decoration-thickness: 2px;
+  text-decoration-thickness: 0.125rem;
   text-underline-offset: 0.18em;
 }
 
 .article-content blockquote {
   margin: 3rem 0;
   padding: 0.25rem 0 0.25rem 1.5rem;
-  border-left: 4px solid var(--accent);
+  border-left: 0.25rem solid var(--accent);
   color: var(--article-muted);
   font-size: 1.18em;
 }
@@ -881,7 +882,7 @@ input:focus-visible {
   overflow-x: auto;
   margin: 2.5rem 0;
   padding: 1.4rem;
-  border: 1px solid var(--article-line);
+  border: 0.0625rem solid var(--article-line);
   background: var(--code-bg);
   color: var(--code-text);
   font-size: 0.84rem;
@@ -894,7 +895,7 @@ input:focus-visible {
 
 .article-content :not(pre) > code {
   padding: 0.12em 0.3em;
-  border: 1px solid var(--article-line);
+  border: 0.0625rem solid var(--article-line);
   font-size: 0.88em;
 }
 
@@ -907,10 +908,10 @@ input:focus-visible {
 .article-content hr {
   margin: 4rem 0;
   border: 0;
-  border-top: 1px solid var(--article-line);
+  border-top: 0.0625rem solid var(--article-line);
 }
 
-@media (max-width: 980px) {
+@media (max-width: 61.25rem) {
   .header-inner {
     align-items: flex-start;
     padding-block: 1rem;
@@ -932,7 +933,7 @@ input:focus-visible {
   }
 
   .hero-visual {
-    width: min(100%, 620px);
+    width: min(100%, 38.75rem);
     margin-left: auto;
   }
 
@@ -942,7 +943,7 @@ input:focus-visible {
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 45rem) {
   .container,
   .article-content {
     width: min(calc(100% - 2rem), 88rem);
@@ -994,7 +995,7 @@ input:focus-visible {
   }
 
   .post-card {
-    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-columns: 2.625rem minmax(0, 1fr);
     gap: 1rem;
   }
 
