@@ -1,12 +1,15 @@
 ---
+import { SITE } from '../lib/site';
+
 const nav = [
-  { href: '/', label: 'Inicio' }
+  { href: '/', label: 'Inicio' },
+  { href: '/rss.xml', label: 'RSS' }
 ];
 ---
 
 <header class="site-header">
   <div class="container header-inner">
-    <a class="brand" href="/">miblog</a>
+    <a class="brand" href="/">{SITE.name}</a>
     <nav aria-label="Principal">
       <ul class="nav-list">
         {nav.map((item) => (
