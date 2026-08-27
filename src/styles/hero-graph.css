@@ -3,13 +3,13 @@
 }
 
 .hero {
-  grid-template-columns: minmax(0, 1.02fr) minmax(620px, 0.98fr);
+  grid-template-columns: minmax(0, 1.02fr) minmax(38.75rem, 0.98fr);
   gap: clamp(2rem, 3vw, 3.75rem);
 }
 
 .hero-visual {
   display: flex;
-  width: min(52vw, 960px);
+  width: min(52vw, 60rem);
   min-width: 0;
   flex-direction: column;
   align-self: center;
@@ -58,37 +58,37 @@
 }
 
 .hero-graph .graph-node text {
-  font-size: 25px;
+  font-size: 1.5625rem;
 }
 
 .hero-graph .graph-edge-label {
-  font-size: 19px;
+  font-size: 1.1875rem;
   stroke: var(--bg);
-  stroke-width: 7px;
+  stroke-width: 0.4375rem;
 }
 
 .hero-graph .graph-node-shape {
-  stroke-width: 2.2px;
+  stroke-width: 0.1375rem;
 }
 
 .hero-graph .graph-node-echo {
-  stroke-width: 1.1px;
+  stroke-width: 0.06875rem;
 }
 
 .hero-graph .graph-edge-stroke--primary {
-  stroke-width: 2px;
+  stroke-width: 0.125rem;
 }
 
 .hero-graph .graph-edge-stroke--secondary {
-  stroke-width: 1px;
+  stroke-width: 0.0625rem;
 }
 
 .hero-graph .graph-arrow-hand--primary {
-  stroke-width: 2.1px;
+  stroke-width: 0.13125rem;
 }
 
 .hero-graph .graph-arrow-hand--secondary {
-  stroke-width: 1px;
+  stroke-width: 0.0625rem;
 }
 
 .hero-graph .graph-node--terminal .graph-node-shape {
@@ -138,55 +138,55 @@
   margin-top: 1rem;
 }
 
-@media (max-width: 1360px) {
+@media (max-width: 85rem) {
   .hero-visual {
-    width: min(50vw, 820px);
+    width: min(50vw, 51.25rem);
     margin-left: clamp(-4rem, -3vw, -1.5rem);
   }
 
   .hero-graph .graph-node text {
-    font-size: 22px;
+    font-size: 1.375rem;
   }
 
   .hero-graph .graph-edge-label {
-    font-size: 17px;
+    font-size: 1.0625rem;
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 73.75rem) {
   .hero {
-    grid-template-columns: minmax(0, 1fr) minmax(500px, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(31.25rem, 1fr);
     gap: clamp(2rem, 3vw, 3rem);
   }
 
   .hero-visual {
-    width: min(49vw, 720px);
+    width: min(49vw, 45rem);
     margin-left: -1.5rem;
   }
 
   .hero-graph .graph-node text {
-    font-size: 20px;
+    font-size: 1.25rem;
   }
 
   .hero-graph .graph-edge-label {
-    font-size: 16px;
+    font-size: 1rem;
   }
 }
 
-@media (max-width: 980px) {
+@media (max-width: 61.25rem) {
   .hero {
     grid-template-columns: 1fr;
     gap: 2.75rem;
   }
 
   .hero-visual {
-    width: min(100%, 900px);
+    width: min(100%, 56.25rem);
     margin-left: auto;
     padding-top: 0;
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 47.5rem) {
   .hero.container {
     width: min(calc(100% - 2rem), 88rem);
   }
@@ -207,11 +207,11 @@
   }
 
   .hero-graph .graph-node text {
-    font-size: 18px;
+    font-size: 1.125rem;
   }
 
   .hero-graph .graph-edge-label {
-    font-size: 14px;
+    font-size: 0.875rem;
   }
 
   .hero-visual .visual-caption {
