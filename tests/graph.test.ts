@@ -40,20 +40,64 @@ describe('graph DSL', () => {
     expect(svg).not.toContain('<script>');
   });
 
-  it('renders diagrams at their intrinsic geometry instead of stretching every graph to the article width', () => {
-    const graph = parseGraph('a: A\nb: B\na -> b');
-    const svg = compileGraphSvg(graph);
+  it('renders every diagram on the same 720px editorial artboard', () => {
+    const compact = compileGraphSvg(parseGraph('a: A\nb: B\na -> b'));
+    const longer = compileGraphSvg(
+      parseGraph('a: A\nb: B\nc: C\nd: D\ne: E\na -> b\nb -> c\nc -> d\nd -> e')
+    );
 
-    expect(svg).toContain('class="article-graph__stage"');
-    expect(svg).toMatch(/<svg[^>]+width="\d+" height="\d+" viewBox="0 0 \d+ \d+"/);
-    expect(svg).not.toContain('style="min-width:');
+    expect(compact).toMatch(/<svg[^>]+width="720" height="\d+" viewBox="0 0 720 \d+"/);
+    expect(longer).toMatch(/<svg[^>]+width="720" height="\d+" viewBox="0 0 720 \d+"/);
   });
 
-  it('uses the same module width for short and long labels', () => {
+  it('uses the same compact module width for short and long one-line labels', () => {
     const short = compileGraphSvg(parseGraph('a: A'));
     const long = compileGraphSvg(parseGraph('a: CONTEXT ASSEMBLER'));
 
-    expect(short).toContain('width="188" height="46"');
-    expect(long).toContain('width="188" height="46"');
+    expect(short).toContain('width="152" height="46"');
+    expect(long).toContain('width="152" height="46"');
+  });
+
+  it('wraps long chains into a serpentine composition instead of one long row or column', () => {
+    const svg = compileGraphSvg(
+      parseGraph(`
+        direction: LR
+        a: ROUTE
+        b: RETRIEVE
+        c: ASSEMBLE
+        d: GENERATE
+        e: GUARD
+        a -> b
+        b -> c
+        c -> d
+        d -> e
+      `)
+    );
+
+    expect(svg).toContain('data-graph-layout="serpentine"');
+    expect(svg).toContain('width="720"');
+  });
+
+  it('uses a balanced fanout composition for one-to-many diagrams', () => {
+    const svg = compileGraphSvg(
+      parseGraph(`
+        hub[accent]: EVALUATION
+        a: ROUTING
+        b: KNOWLEDGE
+        c: SUPPORT
+        d: LANGUAGE
+        e: LATENCY
+        f: CONSISTENCY
+        hub -> a
+        hub -> b
+        hub -> c
+        hub -> d
+        hub -> e
+        hub -> f
+      `)
+    );
+
+    expect(svg).toContain('data-graph-layout="fanout"');
+    expect(svg).toContain('width="720"');
   });
 });
