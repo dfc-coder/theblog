@@ -60,6 +60,10 @@
   text-anchor: middle;
 }
 
+.graph-edge--feedback .graph-edge-label {
+  font-style: italic;
+}
+
 /* Hand-drawn skin: layout stays exact; only the rendered geometry becomes organic. */
 .article-graph[data-graph-skin='handwrite'] .graph-node text,
 .article-graph[data-graph-skin='handwrite'] .graph-edge-label {

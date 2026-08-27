@@ -15,7 +15,7 @@ type CodeNode = {
 
 const EDGE_LABEL_PATTERN = /<text class="graph-edge-label"[^>]*>.*?<\/text>/g;
 const NODE_PATTERN = /<g class="graph-node graph-node--([a-z-]+)">\s*<rect x="([^"]+)" y="([^"]+)" width="([^"]+)" height="([^"]+)" rx="4"\/>\s*(<text[\s\S]*?<\/text>)\s*<\/g>/g;
-const EDGE_PATTERN = /<g class="graph-edge"><path d="([^"]+)" marker-end="[^"]+"\/>(.*?)<\/g>/g;
+const EDGE_PATTERN = /<g class="graph-edge([^"]*)"><path d="([^"]+)" marker-end="[^"]+"\/>(.*?)<\/g>/g;
 const MARKER_PATTERN = /\s*<marker id="graph-arrow-[^"]+"[\s\S]*?<\/marker>\s*/g;
 
 const hoistEdgeLabels = (markup: string): string => {
@@ -58,16 +58,37 @@ const renderRoughNodes = (markup: string, graphKey: string): string =>
     }
   );
 
+const feedbackCurveStroke = (path: string) => {
+  const values = (path.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
+  const points = values.length >= 8
+    ? [
+        { x: values[0] ?? 0, y: values[1] ?? 0 },
+        { x: values[2] ?? 0, y: values[3] ?? 0 },
+        { x: values[4] ?? 0, y: values[5] ?? 0 },
+        { x: values[6] ?? 0, y: values[7] ?? 0 }
+      ]
+    : [];
+
+  return {
+    points,
+    primary: path,
+    secondary: path
+  };
+};
+
 const renderRoughEdges = (markup: string, graphKey: string): string => {
   let edgeIndex = 0;
 
-  return markup.replace(EDGE_PATTERN, (_match, path: string, tail: string) => {
+  return markup.replace(EDGE_PATTERN, (_match, classSuffix: string, path: string, tail: string) => {
     const edgeKey = `${graphKey}:edge:${edgeIndex}`;
     edgeIndex += 1;
-    const stroke = roughOrthogonalStroke(path, edgeKey);
+    const isFeedback = classSuffix.includes('graph-edge--feedback');
+    const stroke = isFeedback
+      ? feedbackCurveStroke(path)
+      : roughOrthogonalStroke(path, edgeKey);
     const arrow = roughArrowHead(stroke.points, `${edgeKey}:arrow`);
 
-    return `<g class="graph-edge">
+    return `<g class="graph-edge${classSuffix}">
   <path class="graph-edge-stroke graph-edge-stroke--primary" d="${stroke.primary}"/>
   <path class="graph-edge-stroke graph-edge-stroke--secondary" d="${stroke.secondary}"/>
   <path class="graph-arrow-hand graph-arrow-hand--primary" d="${arrow.primary}"/>

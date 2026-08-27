@@ -1,5 +1,6 @@
 import type {
   GraphDefinition,
+  GraphEdge,
   GraphLayout,
   GraphNode,
   PositionedNode
@@ -40,6 +41,12 @@ interface SvgViewport {
   readonly height: number;
 }
 
+interface EdgeRoute {
+  readonly path: string;
+  readonly labelX: number;
+  readonly labelY: number;
+}
+
 const escapeHtml = (value: string): string =>
   value
     .replaceAll('&', '&amp;')
@@ -47,6 +54,9 @@ const escapeHtml = (value: string): string =>
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+
+const isFeedbackEdge = (edge: GraphEdge): boolean =>
+  (edge.kind ?? 'default') === 'feedback';
 
 const wrapLine = (line: string): string[] => {
   const trimmed = line.trim();
@@ -105,6 +115,10 @@ const buildRanks = (graph: GraphDefinition): number[] => {
   const outgoing = new Map(graph.nodes.map((node) => [node.id, [] as string[]]));
 
   for (const edge of graph.edges) {
+    if (isFeedbackEdge(edge)) {
+      continue;
+    }
+
     indegree.set(edge.to, (indegree.get(edge.to) ?? 0) + 1);
     outgoing.get(edge.from)?.push(edge.to);
   }
@@ -332,12 +346,13 @@ const createLayeredLrLayout = (rawRanks: readonly (readonly SizedNode[])[]): Gra
 };
 
 const findFanoutHub = (graph: GraphDefinition): string | undefined => {
-  if (graph.edges.length !== graph.nodes.length - 1 || graph.nodes.length < 5) {
+  const structuralEdges = graph.edges.filter((edge) => !isFeedbackEdge(edge));
+  if (structuralEdges.length !== graph.nodes.length - 1 || graph.nodes.length < 5) {
     return undefined;
   }
 
   const outgoing = new Map(graph.nodes.map((node) => [node.id, 0]));
-  for (const edge of graph.edges) {
+  for (const edge of structuralEdges) {
     outgoing.set(edge.from, (outgoing.get(edge.from) ?? 0) + 1);
   }
 
@@ -439,7 +454,7 @@ const renderNodeLabel = (node: PositionedNode): string => {
 const regularEdgePath = (
   from: PositionedNode,
   to: PositionedNode
-): { path: string; labelX: number; labelY: number } => {
+): EdgeRoute => {
   const dx = to.x - from.x;
   const dy = to.y - from.y;
 
@@ -475,7 +490,7 @@ const regularEdgePath = (
 const fanoutEdgePath = (
   from: PositionedNode,
   to: PositionedNode
-): { path: string; labelX: number; labelY: number } => {
+): EdgeRoute => {
   const goesLeft = to.x < from.x;
   const laneX = goesLeft ? MARGIN_X / 2 : ARTBOARD_WIDTH - MARGIN_X / 2;
   const startX = from.x + (goesLeft ? -from.width / 2 : from.width / 2);
@@ -492,7 +507,7 @@ const longEdgePath = (
   from: PositionedNode,
   to: PositionedNode,
   longEdgeIndex: number
-): { path: string; labelX: number; labelY: number } => {
+): EdgeRoute => {
   const laneX = ARTBOARD_WIDTH - 8 - longEdgeIndex * LONG_EDGE_LANE_GAP;
   const startX = from.x + from.width / 2;
   const endX = to.x + to.width / 2;
@@ -504,12 +519,38 @@ const longEdgePath = (
   };
 };
 
+const feedbackEdgePath = (
+  from: PositionedNode,
+  to: PositionedNode,
+  layout: GraphLayout
+): EdgeRoute => {
+  const startX = from.x;
+  const startY = from.y - from.height / 2;
+  const endX = to.x;
+  const endY = to.y + to.height / 2;
+  const leftNodeBoundary = Math.min(
+    ...layout.nodes.map((node) => node.x - node.width / 2)
+  );
+  const laneX = Math.max(MARGIN_X / 2, leftNodeBoundary - 20);
+  const verticalBend = Math.min(44, Math.max(28, Math.abs(startY - endY) * 0.18));
+  const c1x = laneX;
+  const c1y = startY - verticalBend;
+  const c2x = laneX;
+  const c2y = endY + verticalBend;
+
+  return {
+    path: `M ${startX} ${startY} C ${c1x} ${c1y} ${c2x} ${c2y} ${endX} ${endY}`,
+    labelX: laneX + 10,
+    labelY: (startY + endY) / 2 - 6
+  };
+};
+
 const edgePath = (
   from: PositionedNode,
   to: PositionedNode,
   layout: GraphLayout,
   longEdgeIndex: number
-): { path: string; labelX: number; labelY: number } => {
+): EdgeRoute => {
   if (layout.kind === 'fanout') {
     return fanoutEdgePath(from, to);
   }
@@ -576,13 +617,17 @@ export function compileGraphSvg(
         return '';
       }
 
-      const isLong = to.rank - from.rank > 1;
-      const route = edgePath(from, to, layout, isLong ? longEdgeIndex++ : 0);
+      const feedback = isFeedbackEdge(edge);
+      const isLong = !feedback && to.rank - from.rank > 1;
+      const route = feedback
+        ? feedbackEdgePath(from, to, layout)
+        : edgePath(from, to, layout, isLong ? longEdgeIndex++ : 0);
       const label = edge.label
         ? `<text class="graph-edge-label" x="${route.labelX}" y="${route.labelY}">${escapeHtml(edge.label)}</text>`
         : '';
+      const edgeClass = feedback ? 'graph-edge graph-edge--feedback' : 'graph-edge';
 
-      return `<g class="graph-edge"><path d="${route.path}" marker-end="url(#${arrowId})"/>${label}</g>`;
+      return `<g class="${edgeClass}"><path d="${route.path}" marker-end="url(#${arrowId})"/>${label}</g>`;
     })
     .join('');
 

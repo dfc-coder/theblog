@@ -21,14 +21,51 @@ describe('graph DSL', () => {
       { id: 'router', label: 'ROUTER', kind: 'default' },
       { id: 'api', label: 'API', kind: 'accent' }
     ]);
-    expect(graph.edges[1]).toEqual({ from: 'router', to: 'api', label: 'business' });
+    expect(graph.edges[1]).toEqual({
+      from: 'router',
+      to: 'api',
+      label: 'business',
+      kind: 'default'
+    });
+  });
+
+  it('parses feedback edges without including them in DAG validation', () => {
+    const graph = parseGraph(`
+      direction: LR
+      observe: OBSERVE
+      understand: UNDERSTAND
+      learn: LEARN
+      observe -> understand
+      understand -> learn
+      learn ~> observe | feedback
+    `);
+
+    expect(graph.edges[2]).toEqual({
+      from: 'learn',
+      to: 'observe',
+      label: 'feedback',
+      kind: 'feedback'
+    });
+
+    const compiled = compileGraphSvg(graph, {
+      serpentineColumns: 3,
+      viewport: 'content',
+      viewportPadding: 30
+    });
+    const sketched = applyHandDrawnSkin(compiled);
+
+    expect(compiled).toContain('graph-edge graph-edge--feedback');
+    expect(compiled).toMatch(/graph-edge--feedback"><path d="M [^"]+ C [^"]+"/);
+    expect(sketched).toContain('graph-edge graph-edge--feedback');
+    expect(sketched).toContain('graph-edge-stroke--primary');
+    expect(sketched).not.toContain('marker-end=');
   });
 
   it('rejects references to unknown nodes', () => {
     expect(() => parseGraph('a: A\na -> missing')).toThrow('unknown node "missing"');
   });
 
-  it('rejects cycles during compilation', () => {
+  it('rejects structural cycles during compilation', () => {
     const graph = parseGraph('a: A\nb: B\na -> b\nb -> a');
     expect(() => compileGraphSvg(graph)).toThrow('contains a cycle');
   });
