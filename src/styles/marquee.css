@@ -1,10 +1,33 @@
 .editorial-marquee {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 58px;
-  min-height: 48px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 58px;
   border-block: 1px solid var(--line);
   background: var(--surface);
   overflow: hidden;
+}
+
+.marquee-label {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding-inline: clamp(1rem, 2vw, 1.5rem);
+  border-right: 1px solid var(--line-strong);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.marquee-label-arrow {
+  font-size: 0.9rem;
+  line-height: 1;
 }
 
 .marquee-viewport {
@@ -15,29 +38,29 @@
 .marquee-track {
   display: flex;
   width: max-content;
-  min-height: 48px;
+  min-height: 58px;
   align-items: center;
   will-change: transform;
-  animation: marquee-scroll 28s linear infinite;
+  animation: marquee-scroll 34s linear infinite;
 }
 
 .marquee-group {
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 2.4rem;
-  padding-right: 2.4rem;
+  gap: clamp(2.4rem, 4vw, 4.5rem);
+  padding-right: clamp(2.4rem, 4vw, 4.5rem);
 }
 
 .marquee-item {
   display: inline-flex;
   align-items: center;
-  gap: 0.8rem;
-  color: var(--muted);
+  gap: 0.9rem;
+  color: var(--text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.67rem;
+  font-size: clamp(0.75rem, 0.9vw, 0.88rem);
   font-weight: 700;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.09em;
   line-height: 1;
   text-transform: uppercase;
   white-space: nowrap;
@@ -49,30 +72,8 @@
   font-size: 0.48rem;
 }
 
-.marquee-toggle {
-  display: grid;
-  place-items: center;
-  min-width: 58px;
-  border: 0;
-  border-left: 1px solid var(--line);
-  background: var(--bg);
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.marquee-toggle:hover {
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-.marquee-toggle-icon {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
 .editorial-marquee:hover .marquee-track,
-.editorial-marquee[data-paused='true'] .marquee-track {
+.editorial-marquee:focus-within .marquee-track {
   animation-play-state: paused;
 }
 
@@ -88,20 +89,24 @@
 
 @media (max-width: 720px) {
   .editorial-marquee {
-    grid-template-columns: minmax(0, 1fr) 50px;
+    grid-template-columns: 1fr;
   }
 
-  .marquee-group {
-    gap: 1.8rem;
-    padding-right: 1.8rem;
+  .marquee-label {
+    min-height: 36px;
+    justify-content: space-between;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-strong);
   }
 
   .marquee-track {
-    animation-duration: 24s;
+    min-height: 52px;
+    animation-duration: 30s;
   }
 
-  .marquee-toggle {
-    min-width: 50px;
+  .marquee-group {
+    gap: 2.2rem;
+    padding-right: 2.2rem;
   }
 }
 
@@ -116,10 +121,6 @@
   }
 
   .marquee-group:last-child {
-    display: none;
-  }
-
-  .marquee-toggle {
     display: none;
   }
 }
