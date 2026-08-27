@@ -1,27 +1,52 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { SITE } from '../lib/site';
 import '../styles/global.css';
 
 interface Props {
   title?: string;
   description?: string;
+  canonicalPath?: string;
+  type?: 'website' | 'article';
+  noindex?: boolean;
 }
 
 const {
-  title = 'miblog',
-  description = 'Un blog Astro simple, eficiente y listo para crecer.'
+  title = SITE.name,
+  description = SITE.description,
+  canonicalPath = Astro.url.pathname,
+  type = 'website',
+  noindex = false
 } = Astro.props as Props;
+
+const siteUrl = Astro.site ?? new URL(Astro.url.origin);
+const canonicalUrl = new URL(canonicalPath, siteUrl);
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={SITE.language}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
     <title>{title}</title>
+    <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={`${SITE.name} RSS`} href="/rss.xml" />
+
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:locale" content={SITE.locale} />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
   </head>
   <body>
     <div class="site-shell">
