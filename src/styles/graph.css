@@ -106,6 +106,64 @@
   text-anchor: middle;
 }
 
+/* Hand-drawn skin: layout remains exact, only the graphic language becomes rough. */
+.article-graph[data-graph-skin='handwrite'] .graph-node rect,
+.article-graph[data-graph-skin='handwrite'] .graph-edge path,
+.article-graph[data-graph-skin='handwrite'] .graph-arrow {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node rect {
+  stroke-width: 1.55;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node text,
+.article-graph[data-graph-skin='handwrite'] .graph-edge-label {
+  font-family: 'Comic Neue', 'Segoe Print', 'Bradley Hand', 'URW Chancery L', cursive;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node text {
+  font-size: 13px;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-edge path {
+  stroke: var(--article-text);
+  stroke-width: 1.35;
+  opacity: 0.62;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-sketch-echo {
+  fill: none !important;
+  stroke-width: 0.9 !important;
+  opacity: 0.3 !important;
+  pointer-events: none;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node--terminal .graph-sketch-echo,
+.article-graph[data-graph-skin='handwrite'] .graph-node--accent .graph-sketch-echo {
+  fill: none !important;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-arrow {
+  fill: none;
+  stroke: var(--article-text);
+  stroke-width: 1.35;
+  opacity: 0.72;
+}
+
+/* Edge labels get a paper-colored halo so paths can never obscure the text. */
+.article-graph[data-graph-skin='handwrite'] .graph-edge-label {
+  fill: var(--accent);
+  stroke: var(--article-bg);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+  font-size: 11px;
+}
+
 @media (max-width: 760px) {
   .article-graph {
     margin-block: 2.25rem 2.75rem;
