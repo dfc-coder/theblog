@@ -39,4 +39,13 @@ describe('graph DSL', () => {
     expect(svg).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
     expect(svg).not.toContain('<script>');
   });
+
+  it('renders diagrams at their intrinsic geometry instead of stretching every graph to the article width', () => {
+    const graph = parseGraph('a: A\nb: B\na -> b');
+    const svg = compileGraphSvg(graph);
+
+    expect(svg).toContain('class="article-graph__stage"');
+    expect(svg).toMatch(/<svg[^>]+width="\d+" height="\d+" viewBox="0 0 \d+ \d+"/);
+    expect(svg).not.toContain('style="min-width:');
+  });
 });
