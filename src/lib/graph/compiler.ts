@@ -1,10 +1,9 @@
 import type { GraphDefinition, GraphLayout, GraphNode, PositionedNode } from './model';
 
-const NODE_MIN_WIDTH = 148;
-const NODE_MAX_WIDTH = 320;
+const NODE_WIDTH = 188;
 const NODE_LINE_HEIGHT = 18;
-const NODE_PADDING_X = 22;
 const NODE_PADDING_Y = 14;
+const NODE_HEIGHT = NODE_LINE_HEIGHT + NODE_PADDING_Y * 2;
 const RANK_GAP = 82;
 const NODE_GAP = 34;
 const MARGIN = 34;
@@ -19,12 +18,12 @@ const escapeHtml = (value: string): string =>
     .replaceAll("'", '&#39;');
 
 const estimateNodeSize = (node: GraphNode) => {
-  const lines = node.label.split('\n');
-  const longest = Math.max(...lines.map((line) => line.length), 1);
-  const width = Math.min(NODE_MAX_WIDTH, Math.max(NODE_MIN_WIDTH, longest * 8 + NODE_PADDING_X * 2));
-  const height = lines.length * NODE_LINE_HEIGHT + NODE_PADDING_Y * 2;
+  const lineCount = Math.max(node.label.split('\n').length, 1);
 
-  return { width, height };
+  return {
+    width: NODE_WIDTH,
+    height: NODE_HEIGHT + (lineCount - 1) * NODE_LINE_HEIGHT
+  };
 };
 
 const buildRanks = (graph: GraphDefinition): number[] => {
@@ -93,11 +92,11 @@ const createLayout = (graph: GraphDefinition): GraphLayout => {
     const rankWidths = rawRanks.map((rank) =>
       rank.reduce((total, item, index) => total + item.width + (index > 0 ? NODE_GAP : 0), 0)
     );
-    const contentWidth = Math.max(...rankWidths, NODE_MIN_WIDTH);
+    const contentWidth = Math.max(...rankWidths, NODE_WIDTH);
     let y = MARGIN;
 
     rawRanks.forEach((rank, rankIndex) => {
-      const rankHeight = Math.max(...rank.map((item) => item.height), NODE_LINE_HEIGHT + NODE_PADDING_Y * 2);
+      const rankHeight = Math.max(...rank.map((item) => item.height), NODE_HEIGHT);
       let x = MARGIN + (contentWidth - (rankWidths[rankIndex] ?? 0)) / 2;
       const positioned: PositionedNode[] = [];
 
@@ -128,12 +127,12 @@ const createLayout = (graph: GraphDefinition): GraphLayout => {
   const rankHeights = rawRanks.map((rank) =>
     rank.reduce((total, item, index) => total + item.height + (index > 0 ? NODE_GAP : 0), 0)
   );
-  const contentHeight = Math.max(...rankHeights, NODE_LINE_HEIGHT + NODE_PADDING_Y * 2);
+  const contentHeight = Math.max(...rankHeights, NODE_HEIGHT);
   let x = MARGIN;
   let totalWidth = MARGIN * 2;
 
   rawRanks.forEach((rank, rankIndex) => {
-    const rankWidth = Math.max(...rank.map((item) => item.width), NODE_MIN_WIDTH);
+    const rankWidth = NODE_WIDTH;
     let y = MARGIN + (contentHeight - (rankHeights[rankIndex] ?? 0)) / 2;
     const positioned: PositionedNode[] = [];
 
