@@ -1,21 +1,29 @@
 ---
+import { getCollection } from 'astro:content';
+import { getPublishedPosts } from '../lib/blog';
 import { SITE } from '../lib/site';
+import SearchDialog from './SearchDialog.astro';
+import ThemeSwitcher from './ThemeSwitcher.astro';
 
-const nav = [
-  { href: '/', label: 'Inicio' },
-  { href: '/rss.xml', label: 'RSS' }
-];
+const posts = getPublishedPosts(await getCollection('blog'));
 ---
 
 <header class="site-header">
   <div class="container header-inner">
-    <a class="brand" href="/">{SITE.name}</a>
-    <nav aria-label="Principal">
-      <ul class="nav-list">
-        {nav.map((item) => (
-          <li><a href={item.href}>{item.label}</a></li>
-        ))}
-      </ul>
-    </nav>
+    <a class="brand" href="/" aria-label={`${SITE.name}, inicio`}>
+      <span class="brand-index">NI/</span>
+      <span>{SITE.name}</span>
+    </a>
+
+    <div class="header-actions">
+      <nav aria-label="Principal">
+        <ul class="nav-list">
+          <li><a href="/#archivo">Archivo</a></li>
+          <li><a href="/rss.xml">RSS</a></li>
+        </ul>
+      </nav>
+      <SearchDialog posts={posts} />
+      <ThemeSwitcher />
+    </div>
   </div>
 </header>
