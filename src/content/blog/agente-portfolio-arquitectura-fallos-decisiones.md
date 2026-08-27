@@ -1,202 +1,195 @@
 ---
 slug: agente-portfolio-arquitectura-fallos-decisiones
 title: "El agente detrás de mi portfolio: arquitectura, fallos y decisiones"
-description: "Cómo evolucionó el agente de mi portfolio desde un chatbot simple hasta una arquitectura pequeña, explícita y controlable."
+description: "Cómo diseñé un representante conversacional para mi portfolio que corre localmente sobre CPU, con un modelo pequeño y límites explícitos entre lenguaje, conocimiento y control."
 pubDate: 2026-08-27
 tags:
   - ai
   - agents
   - architecture
   - llm
+  - local-ai
 draft: false
 ---
 
-Mi portfolio podía mostrar proyectos, experiencia y tecnologías. Pero seguía siendo una página estática.
+Mi portfolio ya podía mostrar proyectos, experiencia y tecnologías. Lo que no podía hacer era responder una pregunta concreta sobre mi trabajo.
 
-Quería que alguien pudiera preguntar por mi trabajo y obtener una respuesta útil. El primer diseño parecía obvio:
+Quería agregar un agente que pudiera hacerlo, pero con una restricción importante: **tenía que correr localmente en una laptop, sobre CPU**.
 
-```text
-usuario
-   ↓
-portfolio
-   ↓
-LLM
-   ↓
-respuesta
-```
+No buscaba el agente más autónomo posible. Buscaba uno que pudiera representar mi experiencia sin convertir cada decisión del sistema en una generación del LLM.
 
-Funcionó como demo. El problema apareció cuando el agente dejó de ser sólo un chat y pasó a **hablar en mi nombre**.
+> **La pregunta no era “¿cuánto puede hacer el modelo?”, sino “¿qué cosas vale la pena que haga el modelo?”.**
 
-Ahí una respuesta creativa ya no siempre es una buena respuesta.
+## 01. La restricción de CPU cambió el diseño
 
-> **La pregunta dejó de ser “¿cómo genero mejores respuestas?” y pasó a ser “¿qué decisiones debería poder tomar el modelo?”.**
+El modelo conversacional actual es un Qwen3.5-2B cuantizado ejecutándose con `llama.cpp`. No usa GPU.
 
-## 01. El modelo estaba haciendo demasiado
+Eso vuelve visibles decisiones que con un modelo grande y remoto son fáciles de esconder detrás de más tokens, más contexto o una llamada adicional.
 
-La primera versión acumulaba responsabilidades en un mismo lugar:
+Por ejemplo, usar el modelo generativo sólo para decidir a qué parte del sistema enviar cada mensaje sería caro y además innecesariamente variable.
 
-- entender la intención;
-- elegir información;
-- decidir si correspondía una acción;
-- responder;
-- mantener contexto;
-- respetar restricciones.
-
-Con un modelo grande, parte de esa complejidad queda escondida. Con uno pequeño, aparece enseguida.
-
-Y apareció.
-
-Una conversación podía funcionar cinco veces y cambiar de ruta en la sexta. Una frase sobre disponibilidad podía terminar interpretada como una intención de calendario.
+El flujo que terminé buscando es bastante más simple:
 
 ```text
-USER
-La semana que viene podríamos hablar.
-
-≠
-
-CREATE_EVENT
-```
-
-Ese fallo dejó una regla bastante clara:
-
-> **Una respuesta puede ser probabilística. Una regla de seguridad no debería serlo.**
-
-## 02. Separar intención, acción y lenguaje
-
-La solución no fue agregar otro agente. Fue sacar responsabilidades del modelo.
-
-```text
-                         USER
-                          │
-                          ▼
-                    ┌──────────┐
-                    │  ROUTER  │
-                    └────┬─────┘
+VISITOR
+   │
+   ▼
+SEMANTIC ROUTER
+   │
+   ├── general ──────────────────────┐
+   │                                │
+   └── business                     │
+          │                         │
+          ▼                         │
+   PROFILE RETRIEVER                │
+          │                         │
+          ▼                         │
+   CONTEXT ASSEMBLER                │
+          │                         │
+          └──────────────┬──────────┘
+                         ▼
+                    QWEN3.5-2B
                          │
-            ┌────────────┼────────────┐
-            │            │            │
-            ▼            ▼            ▼
-        RESPONDER     SCHEDULER      SAFETY
-            │            │
-            └──────┬─────┘
-                   ▼
-              STREAM GUARD
-                   │
-                   ▼
-                RESPONSE
+                         ▼
+                    STREAM GUARD
+                         │
+                         ▼
+                       SSE
 ```
 
-**Router** clasifica la interacción. No redacta ni ejecuta.
+El LLM sigue siendo importante. Pero dejó de ser el lugar donde ocurre todo.
 
-**Responder** se ocupa del lenguaje natural: explicar, resumir y mantener el idioma de la conversación.
+## 02. El router no necesitaba generar texto
 
-**Scheduler** concentra la lógica de calendario y sólo actúa cuando la intención y los datos son suficientes.
+Para clasificar una consulta uso un segundo modelo pequeño: `Qwen3-Embedding-0.6B`.
 
-**StreamGuard** controla lo que finalmente se expone al usuario.
-
-La arquitectura empezó a mejorar cuando cada componente pudo describirse en una frase.
-
-## 03. El modelo interpreta; el sistema decide
-
-Hay problemas para los que un LLM es excelente:
-
-> Estoy buscando a alguien que haya trabajado con sistemas distribuidos y AI.
-
-Eso requiere interpretar lenguaje ambiguo.
-
-Pero otras decisiones no necesitan creatividad:
+Las descripciones de las rutas se convierten en embeddings al iniciar el servicio y quedan cacheadas. En cada turno sólo hace falta generar el embedding de la consulta y comparar similitud coseno.
 
 ```text
-¿la fecha es válida?
-¿hay datos suficientes?
-¿esta acción requiere confirmación?
-¿el estado permite continuar?
+route descriptions
+       │
+       ▼
+ embeddings ── cached
+
+user message
+       │
+       ▼
+ query embedding
+       │
+       ▼
+ cosine similarity
+       │
+       ▼
+     route
 ```
 
-La división terminó siendo esta:
+Esto separa dos problemas diferentes:
 
-| Problema | Responsable |
-|---|---|
-| Interpretar lenguaje | LLM |
-| Clasificar intención | Router |
-| Generar una explicación | LLM |
-| Validar parámetros | Código |
-| Aplicar reglas de calendario | Código |
-| Ejecutar una acción | Tool / servicio |
-| Controlar salida | Guard |
+- **entender hacia dónde va una consulta**;
+- **redactar una respuesta natural**.
 
-**El modelo puede trabajar con ambigüedad. El sistema conserva la autoridad sobre las reglas.**
+No necesito pagar una generación autoregresiva para resolver el primero.
 
-## 04. KISS se volvió una restricción
+## 03. El modelo no “sabe” mi portfolio
 
-Cada fallo invitaba a agregar algo: más memoria, más tools, planificación, RAG, otro agente, un grafo.
+Otro cambio importante fue sacar el conocimiento profesional del prompt gigante.
 
-Empezamos a usar una pregunta más útil:
+El perfil está estructurado en datos controlados: experiencia, proyectos, skills, educación, certificaciones, servicios y otra información profesional.
 
-> **¿Qué problema concreto resuelve esta nueva capa?**
+Ese perfil se divide en documentos pequeños y sus embeddings se calculan una sola vez durante el arranque.
 
-Si no podíamos responderla claramente, no la agregábamos.
+```text
+BUSINESS PROFILE
+│
+├── experience
+├── projects
+├── skills
+├── education
+├── certifications
+└── services
+        │
+        ▼
+ small documents
+        │
+        ▼
+ cached embeddings
+```
 
-Por eso tampoco usamos LangGraph en esta etapa. El flujo real todavía podía explicarse así:
+Cuando llega una pregunta profesional, el sistema recupera sólo los documentos más relevantes y los incorpora al contexto del modelo.
+
+No hay una vector database ni un pipeline de documentos externo. Para este volumen de conocimiento, un índice en memoria y similitud coseno son suficientes.
+
+> **El modelo no elige qué recordar de mí. El sistema decide qué evidencia recibe.**
+
+## 04. Grounding antes que una respuesta convincente
+
+Un representante profesional tiene un problema distinto a un chatbot genérico: una respuesta plausible pero falsa es peor que una respuesta incompleta.
+
+Por eso el prompt de negocio trata el conocimiento recuperado como la fuente autorizada. Si un dato no está ahí, el agente no debería completarlo por intuición.
+
+Eso aplica especialmente a información como:
+
+- experiencia;
+- proyectos;
+- clientes;
+- resultados;
+- credenciales;
+- servicios o condiciones comerciales.
+
+Después de la generación, `StreamGuard` agrega una última frontera sobre el texto que sale al usuario y bloquea un conjunto pequeño de afirmaciones que el modelo no debería hacer, como presentarse como si fuera la persona del portfolio o afirmar acciones externas no verificadas.
+
+La idea no es moderar cada palabra. Es proteger invariantes concretos.
+
+## 05. KISS dejó afuera bastante tecnología
+
+Era fácil convertir este proyecto en una colección de piezas “agentic”:
+
+```text
+más tools
++ planner
++ vector database
++ reranker adicional
++ ReAct loop
++ LangGraph
++ más agentes
+```
+
+Pero el flujo real no lo necesitaba.
+
+Para el problema actual alcanzaba con:
 
 ```text
 route
   ↓
-execute
+retrieve when needed
   ↓
-respond
+assemble context
+  ↓
+generate
+  ↓
+guard
 ```
 
-Un grafo tendría sentido con branching complejo, múltiples tools encadenadas, reintentos o estados persistentes. Todavía no teníamos ese problema.
+No usar una pieza no significa que sea mala. Significa que todavía no existe un problema que justifique su costo.
 
-La arquitectura futura no debía convertirse en complejidad presente.
+## 06. El sistema terminó haciendo más para que el modelo hiciera menos
 
-## 05. La arquitectura empezó a parecer software normal
+La parte más útil del proyecto no fue conseguir que un modelo de 2B pareciera uno mucho más grande.
 
-Después de varias iteraciones, el agente dejó de parecer una entidad que “hace todo” y pasó a parecer una aplicación con límites claros.
+Fue repartir correctamente el trabajo.
 
-```text
-                           USER
-                            │
-                            ▼
-                     ┌────────────┐
-                     │   ROUTER   │
-                     └──────┬─────┘
-                            │
-              ┌─────────────┼─────────────┐
-              │             │             │
-              ▼             ▼             ▼
-         CONVERSATION    SCHEDULING     SAFETY
-              │             │
-              ▼             ▼
-          RESPONDER      SCHEDULER
-              │             │
-              └──────┬──────┘
-                     │
-                     ▼
-                STREAM GUARD
-                     │
-                     ▼
-                  RESPONSE
-```
+| Responsabilidad | Dueño |
+|---|---|
+| Routing semántico | Embeddings + código |
+| Selección de conocimiento | Retriever |
+| Construcción de contexto | Código |
+| Lenguaje natural | Qwen3.5-2B |
+| Fuente de verdad profesional | Perfil estructurado |
+| Límites de salida | Prompt + StreamGuard |
+| Estado de conversación | Aplicación |
 
-El LLM seguía siendo importante.
+El resultado es una arquitectura menos espectacular que un “agente autónomo”, pero bastante más fácil de entender, medir y corregir.
 
-Pero **ya no era el sistema completo**. Era un componente dentro del sistema.
+> **Para que un modelo chico funcione bien, muchas veces el sistema que lo rodea tiene que asumir más responsabilidad, no menos.**
 
-## 06. Los fallos terminaron diseñando el agente
-
-Las conversaciones correctas demostraban que el agente podía funcionar. Las incorrectas mostraban dónde estaba mal diseñada la arquitectura.
-
-Cada fallo obligaba a decidir:
-
-- ¿se corrige con contexto?;
-- ¿con una regla?;
-- ¿separando responsabilidades?;
-- ¿o estamos usando un LLM donde no hace falta uno?
-
-Ese proceso redujo comportamiento implícito y aumentó decisiones explícitas.
-
-> **Construir un agente confiable consistió menos en darle más autonomía al modelo y más en decidir qué responsabilidades no debía tener.**
-
-En la [segunda parte](/posts/agente-portfolio-modelos-pequenos-evaluacion/) el foco cambia: una vez que la arquitectura parece razonable, **¿cómo comprobamos que realmente funciona?**
+En la [segunda parte](/posts/agente-portfolio-modelos-pequenos-evaluacion/) entro en la otra mitad del problema: por qué terminé ejecutando dos modelos pequeños localmente, qué aprendí comparando tamaños y cómo evaluar un agente así sin conformarse con que “parezca funcionar”.
