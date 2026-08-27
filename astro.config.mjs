@@ -1,6 +1,6 @@
 import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
-import { graphMdastPlugin } from './src/lib/graph/remark.ts';
+import { graphMdastPlugin } from './src/lib/graph/markdown.ts';
 
 const site = process.env.SITE_URL ?? 'http://localhost:4321';
 
