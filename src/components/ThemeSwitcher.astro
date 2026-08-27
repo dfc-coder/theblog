@@ -1,0 +1,50 @@
+---
+const themes = [
+  { id: 'atelier', label: 'Atelier', mark: 'A' },
+  { id: 'paper', label: 'Paper', mark: 'P' },
+  { id: 'signal', label: 'Signal', mark: 'S' }
+] as const;
+---
+
+<div class="theme-switcher" data-theme-switcher aria-label="Tema visual">
+  <span class="theme-switcher-label">THEME</span>
+  <div class="theme-options" role="group" aria-label="Seleccionar tema">
+    {themes.map((theme) => (
+      <button
+        type="button"
+        class="theme-option"
+        data-theme-value={theme.id}
+        aria-label={`Usar tema ${theme.label}`}
+        title={theme.label}
+      >
+        <span aria-hidden="true">{theme.mark}</span>
+      </button>
+    ))}
+  </div>
+</div>
+
+<script>
+  const allowedThemes = ['atelier', 'paper', 'signal'];
+
+  const setTheme = (theme) => {
+    if (!allowedThemes.includes(theme)) return;
+
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('blog-theme', theme);
+
+    document.querySelectorAll('[data-theme-value]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.themeValue === theme));
+    });
+  };
+
+  const currentTheme = document.documentElement.dataset.theme ?? 'atelier';
+  setTheme(currentTheme);
+
+  document.querySelectorAll('[data-theme-value]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (button instanceof HTMLButtonElement && button.dataset.themeValue) {
+        setTheme(button.dataset.themeValue);
+      }
+    });
+  });
+</script>
