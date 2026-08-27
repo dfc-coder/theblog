@@ -4,18 +4,29 @@ import { getPostPath } from '../lib/blog';
 
 interface Props {
   post: BlogPost;
+  index?: number;
 }
 
-const { post } = Astro.props as Props;
+const { post, index = 0 } = Astro.props as Props;
+const number = String(index + 1).padStart(2, '0');
 ---
 
 <article class="post-card">
-  <p class="post-card-date">{post.data.pubDate.toLocaleDateString('es-AR', { dateStyle: 'long' })}</p>
-  <h2><a href={getPostPath(post)}>{post.data.title}</a></h2>
-  <p>{post.data.description}</p>
-  {post.data.tags.length > 0 && (
-    <ul class="tag-list" aria-label="Etiquetas">
-      {post.data.tags.map((tag: string) => <li>#{tag}</li>)}
-    </ul>
-  )}
+  <div class="post-card-index" aria-hidden="true">{number}</div>
+  <div class="post-card-body">
+    <div class="post-card-meta">
+      <time datetime={post.data.pubDate.toISOString()}>
+        {post.data.pubDate.toLocaleDateString('es-AR', { dateStyle: 'medium' })}
+      </time>
+      {post.data.tags[0] && <span>{post.data.tags[0]}</span>}
+    </div>
+    <h3><a href={getPostPath(post)}>{post.data.title}</a></h3>
+    <p>{post.data.description}</p>
+    {post.data.tags.length > 0 && (
+      <ul class="tag-list" aria-label="Etiquetas">
+        {post.data.tags.map((tag: string) => <li>{tag}</li>)}
+      </ul>
+    )}
+  </div>
+  <a class="post-card-arrow" href={getPostPath(post)} aria-label={`Leer ${post.data.title}`}>↗</a>
 </article>
