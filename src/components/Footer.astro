@@ -1,6 +1,17 @@
+---
+import { SITE } from '../lib/site';
+---
+
 <footer class="site-footer">
-  <div class="container footer-inner">
-    <p>miblog · Astro blog scaffold</p>
-    <p>Hecho para publicar simple y rápido.</p>
+  <div class="container footer-grid">
+    <div>
+      <p class="micro-label">NOTAS / INGENIERÍA</p>
+      <p class="footer-statement">Ideas técnicas para construir, operar y entender sistemas reales.</p>
+    </div>
+    <div class="footer-meta">
+      <p>{SITE.name}</p>
+      <a href="/rss.xml">RSS FEED ↗</a>
+      <a href="#top">VOLVER ARRIBA ↑</a>
+    </div>
   </div>
 </footer>

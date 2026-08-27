@@ -1,8 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { blogSchema } from '../src/content/blog/schema';
-import { getPostPath, getPublishedPosts, resolvePostSlug, type BlogPost } from '../src/lib/blog';
+import {
+  getPostPath,
+  getPublishedPosts,
+  resolvePostSlug,
+  type BlogPost
+} from '../src/lib/blog';
 
-const createPost = (overrides: Partial<BlogPost> = {}) => {
+type PostOverrides = Omit<Partial<BlogPost>, 'data'> & {
+  data?: Partial<BlogPost['data']>;
+};
+
+const createPost = (overrides: PostOverrides = {}) => {
   const { data: dataOverrides, ...rest } = overrides;
 
   return {
@@ -63,7 +72,10 @@ describe('blog helpers', () => {
 
     const visiblePosts = getPublishedPosts(posts);
 
-    expect(visiblePosts.map((post) => resolvePostSlug(post))).toEqual(['newer-post', 'older-post']);
+    expect(visiblePosts.map((post) => resolvePostSlug(post))).toEqual([
+      'newer-post',
+      'older-post'
+    ]);
   });
 
   it('resolves the configured slug and builds the canonical path', () => {

@@ -7,7 +7,6 @@
     ".astro/types.d.ts",
     "src",
     "tests",
-    "astro.config.mjs",
-    "content.config.ts"
+    "astro.config.mjs"
   ]
 }

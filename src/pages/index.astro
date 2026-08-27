@@ -1,31 +1,47 @@
 ---
-import { getCollection } from "astro:content";
-import BaseLayout from "../layouts/BaseLayout.astro";
-import PostCard from "../components/PostCard.astro";
-import Hero from "../components/Hero.astro";
-import { getPublishedPosts } from "../lib/blog";
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EditorialMarquee from '../components/EditorialMarquee.astro';
+import PostCard from '../components/PostCard.astro';
+import Hero from '../components/Hero.astro';
+import { getPublishedPosts } from '../lib/blog';
+import { SITE } from '../lib/site';
 
-const posts = getPublishedPosts(await getCollection("blog"));
+const posts = getPublishedPosts(await getCollection('blog'));
+const tags = [...new Set(posts.flatMap((post) => post.data.tags))].slice(0, 6);
 ---
 
 <BaseLayout
-  title="miblog · Inicio"
-  description="Un blog Astro simple, rápido y centrado en contenido estático."
+  title={`${SITE.name} · Inicio`}
+  description={SITE.description}
+  canonicalPath="/"
 >
   <Hero />
-  <section class="container" aria-labelledby="latest-posts">
-    <h2 id="latest-posts">Últimos posts</h2>
+  <EditorialMarquee />
+
+  <section class="container archive-section" id="archivo" aria-labelledby="latest-posts">
+    <div class="section-heading">
+      <div>
+        <p class="micro-label">01 / ARCHIVE</p>
+        <h2 id="latest-posts">Notas recientes</h2>
+      </div>
+      <div class="archive-aside">
+        <span>{String(posts.length).padStart(2, '0')} artículos</span>
+        {tags.length > 0 && <span>{tags.join(' / ')}</span>}
+      </div>
+    </div>
 
     {
       posts.length > 0 ? (
         <div class="post-grid">
-          {posts.map((post) => (
-            <PostCard post={post} />
+          {posts.map((post, index) => (
+            <PostCard post={post} index={index} />
           ))}
         </div>
       ) : (
-        <div class="content-card">
-          <p>Aún no hay posts publicados.</p>
+        <div class="empty-state">
+          <span>00</span>
+          <p>Aún no hay artículos publicados.</p>
         </div>
       )
     }
