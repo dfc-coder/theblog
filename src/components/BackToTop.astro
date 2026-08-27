@@ -14,11 +14,16 @@
 
   if (button) {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const visibilityViewportRatio = 0.75;
+    const impulseViewportRatio = 0.045;
+    const minimumTravelDuration = 440;
+    const maximumTravelDuration = 780;
+    const impulseDuration = 120;
     let ticking = false;
     let scrollingToTop = false;
 
     const updateVisibility = () => {
-      const threshold = Math.max(window.innerHeight * 0.75, 560);
+      const threshold = window.innerHeight * visibilityViewportRatio;
       button.hidden = !scrollingToTop && window.scrollY < threshold;
       ticking = false;
     };
@@ -46,13 +51,15 @@
         return;
       }
 
-      const impulseDistance = Math.min(34, Math.max(18, startY * 0.015));
-      const impulseTarget = Math.min(
-        startY + impulseDistance,
-        document.documentElement.scrollHeight - window.innerHeight
+      const viewportHeight = Math.max(window.innerHeight, 1);
+      const maximumScrollY = document.documentElement.scrollHeight - viewportHeight;
+      const impulseDistance = viewportHeight * impulseViewportRatio;
+      const impulseTarget = Math.min(startY + impulseDistance, maximumScrollY);
+      const viewportDistance = startY / viewportHeight;
+      const travelDuration = Math.min(
+        maximumTravelDuration,
+        minimumTravelDuration + viewportDistance * 70
       );
-      const impulseDuration = 120;
-      const travelDuration = Math.min(780, Math.max(440, startY * 0.22));
       const startedAt = performance.now();
 
       scrollingToTop = true;
@@ -106,16 +113,17 @@
     bottom: clamp(1rem, 2vw, 2rem);
     z-index: 40;
     display: inline-flex;
-    min-height: 54px;
+    min-block-size: clamp(3.25rem, 3rem + 1vw, 3.75rem);
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.9rem 1.1rem;
-    border: 1px solid var(--line-strong);
+    gap: 0.75em;
+    padding-block: clamp(0.8rem, 0.7rem + 0.35vw, 1rem);
+    padding-inline: clamp(1rem, 0.9rem + 0.5vw, 1.35rem);
+    border: 0.0625rem solid var(--line-strong);
     background: var(--bg);
     color: var(--text);
     cursor: pointer;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.76rem;
+    font-size: clamp(0.72rem, 0.68rem + 0.2vw, 0.82rem);
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -134,25 +142,17 @@
     border-color: var(--accent);
     background: var(--accent);
     color: var(--accent-ink);
-    transform: translateY(-2px);
+    transform: translateY(-0.125rem);
   }
 
   .back-to-top span:last-child {
     color: var(--accent);
-    font-size: 1.1rem;
+    font-size: 1.45em;
     line-height: 1;
   }
 
   .back-to-top:hover span:last-child {
     color: inherit;
-  }
-
-  @media (max-width: 760px) {
-    .back-to-top {
-      min-height: 48px;
-      padding: 0.78rem 0.9rem;
-      font-size: 0.7rem;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
