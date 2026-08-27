@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import EditorialMarquee from '../components/EditorialMarquee.astro';
 import PostCard from '../components/PostCard.astro';
 import Hero from '../components/Hero.astro';
 import { getPublishedPosts } from '../lib/blog';
@@ -16,16 +17,7 @@ const tags = [...new Set(posts.flatMap((post) => post.data.tags))].slice(0, 6);
   canonicalPath="/"
 >
   <Hero />
-
-  <section class="editorial-strip" aria-label="Principios editoriales">
-    <div class="container editorial-strip-inner">
-      <span>PRODUCTION FIRST</span>
-      <span>ARCHITECTURE</span>
-      <span>AI SYSTEMS</span>
-      <span>INTEGRATIONS</span>
-      <span>OBSERVABILITY</span>
-    </div>
-  </section>
+  <EditorialMarquee />
 
   <section class="container archive-section" id="archivo" aria-labelledby="latest-posts">
     <div class="section-heading">
@@ -53,16 +45,5 @@ const tags = [...new Set(posts.flatMap((post) => post.data.tags))].slice(0, 6);
         </div>
       )
     }
-  </section>
-
-  <section class="container field-note" aria-labelledby="field-note-title">
-    <p class="micro-label">02 / FIELD NOTE</p>
-    <div>
-      <h2 id="field-note-title">Menos demos. Más sistemas que se pueden operar.</h2>
-      <p>
-        El criterio editorial es simple: decisiones técnicas, trade-offs, fallos y patrones que
-        siguen teniendo sentido cuando el software deja el laboratorio y entra en producción.
-      </p>
-    </div>
   </section>
 </BaseLayout>
