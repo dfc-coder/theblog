@@ -1,33 +1,31 @@
 import { compileGraphSvg } from './compiler';
 import { parseGraph } from './parser';
 
-type MarkdownNode = {
-  type?: string;
-  lang?: string | null;
-  value?: string;
-  children?: MarkdownNode[];
+type CodeNode = {
+  readonly type: 'code';
+  readonly lang?: string | null;
+  readonly value: string;
 };
 
-const transform = (node: MarkdownNode): void => {
-  if (!node.children) {
-    return;
-  }
+/**
+ * Sätteri MDAST plugin used by Astro 7.
+ *
+ * Only `graph` code fences cross into JavaScript. The compiler runs at build time
+ * and replaces the fence with escaped, static SVG markup, so diagrams add no
+ * browser-side JavaScript or runtime dependency.
+ */
+export function graphMdastPlugin() {
+  return {
+    name: 'editorial-graph',
+    code(node: CodeNode) {
+      if (node.lang !== 'graph') {
+        return;
+      }
 
-  node.children = node.children.map((child) => {
-    if (child.type === 'code' && child.lang === 'graph') {
       return {
-        type: 'html',
-        value: compileGraphSvg(parseGraph(child.value ?? ''))
+        type: 'html' as const,
+        value: compileGraphSvg(parseGraph(node.value))
       };
     }
-
-    transform(child);
-    return child;
-  });
-};
-
-export function remarkGraph() {
-  return (tree: MarkdownNode) => {
-    transform(tree);
   };
 }
