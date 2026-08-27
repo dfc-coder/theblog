@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
 .article-graph {
   margin: 2.75rem 0 3.25rem;
   padding: 1rem 0 1.2rem;
@@ -39,13 +41,6 @@
   overflow: visible;
 }
 
-.graph-node rect {
-  fill: var(--article-bg);
-  stroke: var(--article-text);
-  stroke-width: 1.25;
-  vector-effect: non-scaling-stroke;
-}
-
 .graph-node text {
   fill: var(--article-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -54,47 +49,6 @@
   letter-spacing: 0.025em;
   text-anchor: middle;
   dominant-baseline: middle;
-}
-
-.graph-node--terminal rect {
-  fill: var(--article-text);
-  stroke: var(--article-text);
-}
-
-.graph-node--terminal text {
-  fill: var(--article-bg);
-}
-
-.graph-node--accent rect {
-  fill: var(--accent);
-  stroke: var(--accent);
-}
-
-.graph-node--accent text {
-  fill: var(--accent-ink);
-}
-
-.graph-node--muted rect {
-  fill: transparent;
-  stroke: var(--article-line);
-  stroke-dasharray: 4 4;
-}
-
-.graph-node--muted text {
-  fill: var(--article-muted);
-}
-
-.graph-edge path {
-  fill: none;
-  stroke: var(--article-muted);
-  stroke-linecap: square;
-  stroke-linejoin: round;
-  stroke-width: 1.2;
-  vector-effect: non-scaling-stroke;
-}
-
-.graph-arrow {
-  fill: var(--article-muted);
 }
 
 .graph-edge-label {
@@ -106,62 +60,143 @@
   text-anchor: middle;
 }
 
-/* Hand-drawn skin: layout remains exact, only the graphic language becomes rough. */
-.article-graph[data-graph-skin='handwrite'] .graph-node rect,
-.article-graph[data-graph-skin='handwrite'] .graph-edge path,
-.article-graph[data-graph-skin='handwrite'] .graph-arrow {
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.article-graph[data-graph-skin='handwrite'] .graph-node rect {
-  stroke-width: 1.55;
-}
-
+/* Hand-drawn skin: layout stays exact; only the rendered geometry becomes organic. */
 .article-graph[data-graph-skin='handwrite'] .graph-node text,
 .article-graph[data-graph-skin='handwrite'] .graph-edge-label {
-  font-family: 'Comic Neue', 'Segoe Print', 'Bradley Hand', 'URW Chancery L', cursive;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  font-family: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
+  font-weight: 400;
+  letter-spacing: 0.015em;
 }
 
 .article-graph[data-graph-skin='handwrite'] .graph-node text {
-  font-size: 13px;
+  font-size: 15px;
 }
 
-.article-graph[data-graph-skin='handwrite'] .graph-edge path {
+.article-graph[data-graph-skin='handwrite'] .graph-node-shape,
+.article-graph[data-graph-skin='handwrite'] .graph-node-echo,
+.article-graph[data-graph-skin='handwrite'] .graph-edge-stroke,
+.article-graph[data-graph-skin='handwrite'] .graph-arrow-hand,
+.article-graph[data-graph-skin='handwrite'] .graph-hatch {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node-shape {
+  fill: var(--article-bg);
   stroke: var(--article-text);
-  stroke-width: 1.35;
-  opacity: 0.62;
+  stroke-width: 1.75;
 }
 
-.article-graph[data-graph-skin='handwrite'] .graph-sketch-echo {
-  fill: none !important;
-  stroke-width: 0.9 !important;
-  opacity: 0.3 !important;
+.article-graph[data-graph-skin='handwrite'] .graph-node-echo {
+  fill: none;
+  stroke: var(--article-text);
+  stroke-width: 0.9;
+  opacity: 0.48;
   pointer-events: none;
 }
 
-.article-graph[data-graph-skin='handwrite'] .graph-node--terminal .graph-sketch-echo,
-.article-graph[data-graph-skin='handwrite'] .graph-node--accent .graph-sketch-echo {
-  fill: none !important;
+.article-graph[data-graph-skin='handwrite'] .graph-node--terminal .graph-node-shape {
+  fill: var(--article-text);
+  stroke: var(--article-text);
 }
 
-.article-graph[data-graph-skin='handwrite'] .graph-arrow {
+.article-graph[data-graph-skin='handwrite'] .graph-node--terminal .graph-node-echo {
+  stroke: var(--article-bg);
+  opacity: 0.3;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node--terminal text {
+  fill: var(--article-bg);
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node--accent .graph-node-shape {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node--accent .graph-node-echo {
+  stroke: var(--accent-ink);
+  opacity: 0.34;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node--accent text {
+  fill: var(--accent-ink);
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node--muted .graph-node-shape {
+  fill: transparent;
+  stroke: var(--article-muted);
+  stroke-dasharray: 6 4;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node--muted .graph-node-echo {
+  stroke: var(--article-muted);
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node--muted text {
+  fill: var(--article-muted);
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-edge-stroke {
   fill: none;
   stroke: var(--article-text);
-  stroke-width: 1.35;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-edge-stroke--primary {
+  stroke-width: 1.55;
   opacity: 0.72;
 }
 
-/* Edge labels get a paper-colored halo so paths can never obscure the text. */
+.article-graph[data-graph-skin='handwrite'] .graph-edge-stroke--secondary {
+  stroke-width: 0.85;
+  opacity: 0.28;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-arrow-hand {
+  fill: none;
+  stroke: var(--article-text);
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-arrow-hand--primary {
+  stroke-width: 1.75;
+  opacity: 0.78;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-arrow-hand--secondary {
+  stroke-width: 0.85;
+  opacity: 0.3;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-hatching {
+  pointer-events: none;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-hatch {
+  fill: none;
+  stroke: var(--article-muted);
+  stroke-width: 1.1;
+  opacity: 0.52;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node--terminal .graph-hatch {
+  stroke: var(--article-bg);
+  opacity: 0.36;
+}
+
+.article-graph[data-graph-skin='handwrite'] .graph-node--accent .graph-hatch {
+  stroke: var(--accent-ink);
+  opacity: 0.38;
+}
+
+/* Labels are painted last and get a paper halo so no path can obscure them. */
 .article-graph[data-graph-skin='handwrite'] .graph-edge-label {
   fill: var(--accent);
   stroke: var(--article-bg);
-  stroke-width: 5px;
+  stroke-width: 6px;
   stroke-linejoin: round;
   paint-order: stroke fill;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 @media (max-width: 760px) {
