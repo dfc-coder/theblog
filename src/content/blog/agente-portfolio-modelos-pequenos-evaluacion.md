@@ -12,27 +12,17 @@ tags:
 draft: false
 ---
 
-En la [primera parte](/posts/agente-portfolio-arquitectura-fallos-decisiones/) el problema era arquitectónico:
+En la [primera parte](/posts/agente-portfolio-arquitectura-fallos-decisiones/) el problema era arquitectónico: **qué debía decidir el modelo y qué debía decidir el sistema**.
 
-> ¿Qué debería decidir el modelo y qué debería decidir el sistema?
+Después apareció otra pregunta.
 
-Una vez separadas las responsabilidades, apareció un segundo problema.
+El agente tenía que funcionar con un modelo pequeño, dentro del navegador. ¿Cómo saber si realmente era confiable?
 
-El agente tenía que funcionar con un modelo suficientemente pequeño como para ejecutarse en el navegador.
+> **“Parece funcionar” dejó de ser una forma aceptable de evaluar el sistema.**
 
-Eso significaba que ya no alcanzaba con decir:
+## 01. El conocimiento no necesitaba RAG
 
-> Parece funcionar.
-
-Había que medirlo.
-
----
-
-## 01. El conocimiento no necesitaba empezar con RAG
-
-La primera intuición para un agente que conoce mi experiencia era usar RAG.
-
-La arquitectura típica habría sido:
+La primera intuición era bastante estándar:
 
 ```text
 CV
@@ -48,25 +38,11 @@ retrieval
 LLM
 ```
 
-Pero había una pregunta básica:
+Pero el conocimiento del portfolio era pequeño, estructurado y controlado.
 
-> ¿Qué estamos buscando realmente?
+No estábamos buscando respuestas entre miles de documentos. Estábamos describiendo experiencia, proyectos y habilidades.
 
-La información de un portfolio es relativamente pequeña.
-
-Además es conocida, estructurada y controlada.
-
-No estamos consultando miles de documentos.
-
-Estamos describiendo:
-
-- experiencia;
-- proyectos;
-- tecnologías;
-- formación;
-- certificaciones.
-
-Así que terminamos favoreciendo conocimiento explícito.
+Así que preferimos algo más explícito:
 
 ```text
 PROFILE
@@ -75,45 +51,18 @@ PROFILE
 ├── projects
 ├── skills
 ├── education
-├── certifications
-└── business context
+└── certifications
 ```
 
-Eso eliminó infraestructura que todavía no aportaba valor.
+El resultado: menos infraestructura, actualización más simple y mejor auditabilidad.
 
-### Menos piezas
+RAG seguía siendo una opción. Simplemente **no resolvía un problema que todavía tuviéramos**.
 
-No necesitamos embeddings, base vectorial ni pipeline de indexación.
+## 02. Los modelos pequeños expusieron la arquitectura
 
-### Más auditabilidad
+El agente debía ejecutarse con WebLLM, así que probamos modelos pequeños, incluyendo variantes alrededor de 0.8B y 2B parámetros.
 
-Podemos saber exactamente qué información está disponible.
-
-### Actualizaciones más simples
-
-Cambiar experiencia o proyectos no implica reconstruir un índice.
-
-RAG sigue siendo útil.
-
-Simplemente no era automáticamente la herramienta correcta para este caso.
-
----
-
-## 02. Los modelos pequeños cambiaron el problema
-
-El agente debía poder ejecutarse en browser usando WebLLM.
-
-Eso imponía una restricción importante.
-
-No podíamos simplemente resolver cada dificultad aumentando el tamaño del modelo.
-
-Probamos variantes pequeñas, incluyendo modelos alrededor de 0.8B y 2B parámetros.
-
-Ahí apareció algo interesante.
-
-Un modelo grande puede esconder una arquitectura ambigua.
-
-Un modelo pequeño no.
+Ahí apareció un patrón:
 
 ```text
 arquitectura ambigua
@@ -123,67 +72,33 @@ modelo pequeño
 fallo visible
 ```
 
-Si le pedíamos demasiadas cosas al mismo tiempo, fallaba.
-
 Si el prompt dependía de matices muy finos, fallaba.
 
 Si mezclábamos clasificación, acción y respuesta, fallaba.
 
-Eso terminó siendo útil.
+Si le pedíamos demasiadas responsabilidades al mismo tiempo, fallaba.
 
-Los modelos pequeños funcionaban como una especie de detector de deuda arquitectónica.
+Eso terminó siendo útil. El modelo pequeño dejó de ocultar decisiones arquitectónicas débiles.
 
----
+La comparación 0.8B vs. 2B dejó entonces de ser “cuál parece más inteligente”. La pregunta correcta era:
 
-## 03. 0.8B contra 2B no era una competencia de inteligencia
+> **¿Cuál es el modelo más pequeño que cumple el contrato del sistema?**
 
-La pregunta no era:
+## 03. De conversaciones manuales a evaluación
 
-> ¿Cuál modelo parece más inteligente?
+Al principio probábamos como cualquiera:
 
-Era:
+```text
+abrir portfolio
+      ↓
+preguntar algo
+      ↓
+mirar respuesta
+```
 
-> ¿Cuál es el modelo más pequeño que cumple correctamente el contrato del sistema?
+Sirve para desarrollar. No sirve para medir estabilidad.
 
-Eso cambia bastante la evaluación.
-
-Un modelo de 0.8B puede ser suficiente para una tarea muy acotada.
-
-Pero si le pedimos que:
-
-- interprete intención;
-- decida una acción;
-- valide parámetros;
-- mantenga contexto;
-- genere una respuesta perfecta;
-
-probablemente estemos evaluando más la arquitectura que el modelo.
-
-Separar responsabilidades hizo que la comparación fuera mucho más útil.
-
-Ya no medíamos una sensación general de calidad.
-
-Medíamos comportamiento concreto.
-
----
-
-## 04. Probar conversaciones a mano dejó de alcanzar
-
-Al principio las pruebas eran manuales.
-
-Abrir el portfolio.
-
-Preguntar algo.
-
-Mirar la respuesta.
-
-Repetir.
-
-Eso sirve para desarrollar.
-
-No sirve para demostrar estabilidad.
-
-La evaluación empezó a parecerse más a esto:
+La evaluación pasó a cubrir decenas de conversaciones y varias dimensiones:
 
 ```text
 50–100 conversaciones
@@ -204,74 +119,33 @@ La evaluación empezó a parecerse más a esto:
 
 El router dejó de ser “algo que parece funcionar” y pasó a ser un componente medible.
 
----
+## 04. No todos los errores cuestan lo mismo
 
-## 05. No todos los errores cuestan lo mismo
+Una clasificación incorrecta en una pregunta técnica produce una mala respuesta.
 
-Uno de los fallos más importantes era el scheduling incorrecto.
+Una clasificación incorrecta en scheduling puede producir una acción.
+
+No tienen el mismo costo.
 
 Por ejemplo:
 
 > Tal vez la semana próxima tenga tiempo.
 
-Eso no significa:
+no debería convertirse en:
 
 ```text
 CREATE_EVENT
 ```
 
-Tampoco:
+Por eso una métrica importante fue `false_scheduling_rate`.
 
-> ¿Podríamos hablar algún día?
+No bastaba con preguntar cuántos aciertos tenía el router. También necesitábamos saber **qué tipo de error estaba cometiendo**.
 
-La clasificación incorrecta de una pregunta técnica puede producir una mala respuesta.
-
-La clasificación incorrecta de una intención sensible puede producir una acción.
-
-No tienen el mismo costo.
-
-Por eso una métrica importante pasó a ser:
-
-```text
-false_scheduling_rate
-```
-
-La pregunta dejó de ser:
-
-> ¿Qué accuracy tiene el router?
-
-y pasó a incluir:
-
-> ¿Con qué frecuencia entra a una ruta sensible cuando no debería?
-
-Esa diferencia importa.
-
-Una buena evaluación no mide solamente cuántos errores hay.
-
-También mide **qué errores son aceptables**.
-
----
-
-## 06. Un PASS tampoco era suficiente
+## 05. Un PASS no era suficiente
 
 Los LLMs son probabilísticos.
 
-Que un caso funcione una vez no dice demasiado.
-
-Supongamos:
-
-```text
-USER
-Me interesa tu experiencia con AWS.
-```
-
-Ejecutamos la prueba.
-
-Funciona.
-
-Bien.
-
-Pero necesitamos algo más cercano a:
+Un caso que funciona una vez no demuestra estabilidad.
 
 ```text
 caso crítico
@@ -283,178 +157,34 @@ run 4 → PASS
 run 5 → PASS
 ```
 
-No sólo:
+Esa repetibilidad, cercana a la idea de `pass^k`, era especialmente importante para rutas sensibles.
 
-```text
-run 1 → PASS
-```
+Un agente que acierta cuatro veces y falla la quinta todavía tiene un problema si ese fallo puede producir una acción incorrecta.
 
-Ahí aparece la idea de `pass^k`.
+La estabilidad pasó a ser una feature observable.
 
-Para rutas críticas, la repetibilidad importa tanto como el resultado individual.
+## 06. Qué terminó importando
 
-Un agente que funciona cuatro veces y falla la quinta todavía tiene un problema si esa quinta ejecución puede disparar una acción incorrecta.
+La restricción de usar un modelo pequeño terminó mejorando el proyecto.
 
----
-
-## 07. Evaluar el agente como sistema
-
-La evaluación terminó separándose en varias dimensiones.
-
-### Routing
-
-¿Eligió la ruta correcta?
-
-### Formato
-
-¿Produjo JSON válido cuando debía hacerlo?
-
-### Safety
-
-¿Intentó ejecutar algo cuando no correspondía?
-
-### Idioma
-
-¿Respondió en el idioma de la conversación?
-
-### Latencia
-
-¿El modelo sigue siendo usable dentro del browser?
-
-### Consistencia
-
-¿Mantiene el comportamiento cuando repetimos el mismo caso?
-
-Conceptualmente:
-
-```text
-                 ┌──────────────┐
-input ─────────→ │    AGENT     │
-                 └──────┬───────┘
-                        │
-        ┌───────────────┼────────────────┐
-        │               │                │
-        ▼               ▼                ▼
-     ROUTING          SAFETY         RESPONSE
-        │               │                │
-        ▼               ▼                ▼
-   accuracy         false rate       quality
-```
-
-Ese cambio fue importante.
-
-Dejamos de evaluar únicamente la respuesta final.
-
-Empezamos a evaluar el comportamiento interno que la producía.
-
----
-
-## 08. El modelo pequeño terminó siendo una ventaja
-
-Al principio la restricción de ejecutar un modelo pequeño parecía sólo una limitación.
-
-Después dejó de serlo.
-
-Obligó a hacer explícitas cosas que un modelo más grande podía resolver de forma implícita.
-
-Si una tarea requería demasiada interpretación, teníamos que simplificarla.
-
-Si un contrato era ambiguo, teníamos que definirlo mejor.
-
-Si una ruta dependía demasiado del prompt, teníamos que revisar el diseño.
-
-Eso llevó a una conclusión que no esperaba al empezar:
-
-> **Un modelo pequeño puede mejorar la arquitectura porque deja de ocultar sus defectos.**
-
-No porque sea más capaz.
-
-Sino porque obliga al sistema a ser más claro.
-
----
-
-## 09. Qué mediría antes de cambiar de modelo
-
-Cuando un modelo falla, cambiarlo es tentador.
-
-Pero antes conviene separar tres posibilidades:
+Nos obligó a separar tres preguntas:
 
 ```text
 ¿falla el modelo?
-        │
-        ├── sí → probar otro modelo
-        │
-        └── no
-             │
-             ▼
-¿falla el prompt?
-        │
-        ├── sí → simplificar contrato
-        │
-        └── no
-             │
-             ▼
+      ↓
+¿falla el contrato?
+      ↓
 ¿falla la arquitectura?
 ```
 
-Un modelo más grande puede mejorar el resultado.
+Cambiar por un modelo más grande puede mejorar la salida. También puede esconder que el sistema le está pidiendo demasiado.
 
-Pero también puede esconder que el sistema le está pidiendo demasiado.
+Por eso me quedaron cinco reglas:
 
-Por eso la evaluación tiene que existir antes de tomar la decisión.
+- RAG no es obligatorio;
+- un modelo pequeño no debería hacer todo;
+- una conversación bonita no es una métrica;
+- no todos los errores tienen el mismo costo;
+- la repetibilidad forma parte de la confiabilidad.
 
-Sin métricas, cambiar de modelo se convierte en prueba y error.
-
----
-
-## 10. Lo que me quedó del proyecto
-
-Después de trabajar con esta restricción, algunas ideas quedaron bastante claras.
-
-### RAG no es obligatorio
-
-Si el conocimiento es pequeño y estructurado, una representación explícita puede ser mejor.
-
-### Los modelos pequeños no deberían hacer todo
-
-Cuanto más pequeña la capacidad, más importante es reducir responsabilidades.
-
-### Una conversación bonita no es una métrica
-
-Necesitamos observar rutas, formatos, errores sensibles, latencia y repetibilidad.
-
-### No todos los fallos tienen el mismo costo
-
-Un false positive en scheduling importa mucho más que una respuesta ligeramente menos elegante.
-
-### La estabilidad también es una feature
-
-Que algo funcione una vez no alcanza.
-
-En sistemas probabilísticos, la repetibilidad forma parte del comportamiento esperado.
-
----
-
-## 11. El resultado
-
-El objetivo del proyecto nunca fue demostrar que un modelo pequeño podía hacer todo.
-
-Era exactamente lo contrario.
-
-Quería descubrir **qué era lo mínimo que el modelo tenía que hacer bien** para que el resto del sistema pudiera mantener control y previsibilidad.
-
-La arquitectura resolvió una parte.
-
-La evaluación resolvió la otra.
-
-Y juntas cambiaron la pregunta inicial.
-
-Ya no era:
-
-> ¿Qué tan inteligente puede ser este agente?
-
-Sino:
-
-> **¿Qué tan confiable puede ser este sistema usando la menor cantidad de inteligencia necesaria?**
-
-Esa terminó siendo una pregunta mucho más útil.
+> **El objetivo nunca fue construir el agente más inteligente. Fue construir el sistema más confiable usando la menor cantidad de inteligencia necesaria.**
