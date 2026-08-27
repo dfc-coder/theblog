@@ -24,7 +24,13 @@ build -> production
 production -> learn | feedback
 `;
 
-const graphMarkup = applyHandDrawnSkin(compileGraphSvg(parseGraph(source))).replace(
+const graphMarkup = applyHandDrawnSkin(
+  compileGraphSvg(parseGraph(source), {
+    serpentineColumns: 3,
+    viewport: 'content',
+    viewportPadding: 30
+  })
+).replace(
   'class="article-graph"',
   'class="article-graph hero-graph"'
 );
