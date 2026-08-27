@@ -1,0 +1,106 @@
+<button
+  class="back-to-top"
+  id="back-to-top"
+  type="button"
+  aria-label="Volver al inicio de la página"
+  hidden
+>
+  <span>UP TOP</span>
+  <span aria-hidden="true">↑</span>
+</button>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>('#back-to-top');
+
+  if (button) {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let ticking = false;
+
+    const updateVisibility = () => {
+      const threshold = Math.max(window.innerHeight * 0.75, 560);
+      button.hidden = window.scrollY < threshold;
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (ticking) {
+        return;
+      }
+
+      ticking = true;
+      window.requestAnimationFrame(updateVisibility);
+    };
+
+    button.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: reducedMotion.matches ? 'auto' : 'smooth'
+      });
+    });
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    updateVisibility();
+  }
+</script>
+
+<style>
+  .back-to-top {
+    position: fixed;
+    right: clamp(1rem, 2vw, 2rem);
+    bottom: clamp(1rem, 2vw, 2rem);
+    z-index: 40;
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--line-strong);
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition:
+      background 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .back-to-top[hidden] {
+    display: none;
+  }
+
+  .back-to-top:hover {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+    transform: translateY(-2px);
+  }
+
+  .back-to-top span:last-child {
+    color: var(--accent);
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
+  .back-to-top:hover span:last-child {
+    color: inherit;
+  }
+
+  @media (max-width: 760px) {
+    .back-to-top {
+      min-height: 40px;
+      padding: 0.65rem 0.75rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .back-to-top {
+      transition: none;
+    }
+  }
+</style>
