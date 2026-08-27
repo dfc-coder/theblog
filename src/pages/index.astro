@@ -7,6 +7,7 @@ import { getPublishedPosts } from '../lib/blog';
 import { SITE } from '../lib/site';
 
 const posts = getPublishedPosts(await getCollection('blog'));
+const tags = [...new Set(posts.flatMap((post) => post.data.tags))].slice(0, 6);
 ---
 
 <BaseLayout
@@ -15,21 +16,53 @@ const posts = getPublishedPosts(await getCollection('blog'));
   canonicalPath="/"
 >
   <Hero />
-  <section class="container" aria-labelledby="latest-posts">
-    <h2 id="latest-posts">Últimos posts</h2>
+
+  <section class="editorial-strip" aria-label="Principios editoriales">
+    <div class="container editorial-strip-inner">
+      <span>PRODUCTION FIRST</span>
+      <span>ARCHITECTURE</span>
+      <span>AI SYSTEMS</span>
+      <span>INTEGRATIONS</span>
+      <span>OBSERVABILITY</span>
+    </div>
+  </section>
+
+  <section class="container archive-section" id="archivo" aria-labelledby="latest-posts">
+    <div class="section-heading">
+      <div>
+        <p class="micro-label">01 / ARCHIVE</p>
+        <h2 id="latest-posts">Notas recientes</h2>
+      </div>
+      <div class="archive-aside">
+        <span>{String(posts.length).padStart(2, '0')} artículos</span>
+        {tags.length > 0 && <span>{tags.join(' / ')}</span>}
+      </div>
+    </div>
 
     {
       posts.length > 0 ? (
         <div class="post-grid">
-          {posts.map((post) => (
-            <PostCard post={post} />
+          {posts.map((post, index) => (
+            <PostCard post={post} index={index} />
           ))}
         </div>
       ) : (
-        <div class="content-card">
-          <p>Aún no hay posts publicados.</p>
+        <div class="empty-state">
+          <span>00</span>
+          <p>Aún no hay artículos publicados.</p>
         </div>
       )
     }
+  </section>
+
+  <section class="container field-note" aria-labelledby="field-note-title">
+    <p class="micro-label">02 / FIELD NOTE</p>
+    <div>
+      <h2 id="field-note-title">Menos demos. Más sistemas que se pueden operar.</h2>
+      <p>
+        El criterio editorial es simple: decisiones técnicas, trade-offs, fallos y patrones que
+        siguen teniendo sentido cuando el software deja el laboratorio y entra en producción.
+      </p>
+    </div>
   </section>
 </BaseLayout>
