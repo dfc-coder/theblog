@@ -22,16 +22,17 @@
 }
 
 .article-graph__stage {
-  display: grid;
-  width: max-content;
-  min-width: 100%;
-  min-height: 18rem;
-  padding: 1rem 1.25rem 1.25rem;
-  place-items: center;
+  display: flex;
+  width: 100%;
+  min-width: max-content;
+  padding: 0.9rem 1rem 1.05rem;
+  align-items: center;
+  justify-content: center;
 }
 
 .article-graph__svg {
   display: block;
+  flex: none;
   width: auto;
   height: auto;
   max-width: none;
@@ -41,7 +42,7 @@
 .graph-node rect {
   fill: var(--article-bg);
   stroke: var(--article-text);
-  stroke-width: 1.35;
+  stroke-width: 1.25;
   vector-effect: non-scaling-stroke;
 }
 
@@ -50,7 +51,7 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.035em;
+  letter-spacing: 0.025em;
   text-anchor: middle;
   dominant-baseline: middle;
 }
@@ -88,7 +89,7 @@
   stroke: var(--article-muted);
   stroke-linecap: square;
   stroke-linejoin: round;
-  stroke-width: 1.25;
+  stroke-width: 1.2;
   vector-effect: non-scaling-stroke;
 }
 
@@ -105,13 +106,13 @@
   text-anchor: middle;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 760px) {
   .article-graph {
     margin-block: 2.25rem 2.75rem;
   }
 
   .article-graph__stage {
-    min-height: 15rem;
     padding-inline: 0.75rem;
+    justify-content: flex-start;
   }
 }
