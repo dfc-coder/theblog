@@ -1,18 +1,20 @@
 .hero.container {
-  width: min(calc(100% - 3rem), 108rem);
+  width: min(calc(100% - 2rem), 112rem);
 }
 
 .hero {
-  grid-template-columns: minmax(0, 0.98fr) minmax(660px, 1.02fr);
-  gap: clamp(2.5rem, 3.5vw, 4.25rem);
+  grid-template-columns: minmax(0, 1.02fr) minmax(620px, 0.98fr);
+  gap: clamp(2rem, 3vw, 3.75rem);
 }
 
 .hero-visual {
   display: flex;
+  width: min(52vw, 960px);
   min-width: 0;
   flex-direction: column;
   align-self: center;
   justify-content: center;
+  margin-left: clamp(-6.5rem, -5vw, -3rem);
   padding-top: clamp(0.25rem, 1vh, 0.75rem);
 }
 
@@ -27,6 +29,7 @@
   --article-text: var(--text);
   --article-muted: var(--muted);
   --article-line: var(--line);
+  width: 100%;
   margin: 0;
   padding: 0;
   border: 0;
@@ -55,12 +58,37 @@
 }
 
 .hero-graph .graph-node text {
-  font-size: 21px;
+  font-size: 25px;
 }
 
 .hero-graph .graph-edge-label {
-  font-size: 17px;
+  font-size: 19px;
   stroke: var(--bg);
+  stroke-width: 7px;
+}
+
+.hero-graph .graph-node-shape {
+  stroke-width: 2.2px;
+}
+
+.hero-graph .graph-node-echo {
+  stroke-width: 1.1px;
+}
+
+.hero-graph .graph-edge-stroke--primary {
+  stroke-width: 2px;
+}
+
+.hero-graph .graph-edge-stroke--secondary {
+  stroke-width: 1px;
+}
+
+.hero-graph .graph-arrow-hand--primary {
+  stroke-width: 2.1px;
+}
+
+.hero-graph .graph-arrow-hand--secondary {
+  stroke-width: 1px;
 }
 
 .hero-graph .graph-node--terminal .graph-node-shape {
@@ -107,13 +135,33 @@
 }
 
 .hero-visual .visual-caption {
-  margin-top: 0.9rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 1360px) {
+  .hero-visual {
+    width: min(50vw, 820px);
+    margin-left: clamp(-4rem, -3vw, -1.5rem);
+  }
+
+  .hero-graph .graph-node text {
+    font-size: 22px;
+  }
+
+  .hero-graph .graph-edge-label {
+    font-size: 17px;
+  }
 }
 
 @media (max-width: 1180px) {
   .hero {
-    grid-template-columns: minmax(0, 1fr) minmax(520px, 1fr);
-    gap: clamp(2.25rem, 3.5vw, 3.5rem);
+    grid-template-columns: minmax(0, 1fr) minmax(500px, 1fr);
+    gap: clamp(2rem, 3vw, 3rem);
+  }
+
+  .hero-visual {
+    width: min(49vw, 720px);
+    margin-left: -1.5rem;
   }
 
   .hero-graph .graph-node text {
