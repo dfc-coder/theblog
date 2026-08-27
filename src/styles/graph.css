@@ -1,0 +1,118 @@
+.article-graph {
+  margin: 2.75rem 0 3.25rem;
+  padding: 1rem 0 1.2rem;
+  border-block: 1px solid var(--article-line);
+}
+
+.article-graph figcaption {
+  margin-bottom: 0.8rem;
+  color: var(--article-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.article-graph__viewport {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.article-graph__stage {
+  display: flex;
+  width: 100%;
+  min-width: max-content;
+  padding: 0.9rem 1rem 1.05rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.article-graph__svg {
+  display: block;
+  flex: none;
+  width: auto;
+  height: auto;
+  max-width: none;
+  overflow: visible;
+}
+
+.graph-node rect {
+  fill: var(--article-bg);
+  stroke: var(--article-text);
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+}
+
+.graph-node text {
+  fill: var(--article-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.graph-node--terminal rect {
+  fill: var(--article-text);
+  stroke: var(--article-text);
+}
+
+.graph-node--terminal text {
+  fill: var(--article-bg);
+}
+
+.graph-node--accent rect {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.graph-node--accent text {
+  fill: var(--accent-ink);
+}
+
+.graph-node--muted rect {
+  fill: transparent;
+  stroke: var(--article-line);
+  stroke-dasharray: 4 4;
+}
+
+.graph-node--muted text {
+  fill: var(--article-muted);
+}
+
+.graph-edge path {
+  fill: none;
+  stroke: var(--article-muted);
+  stroke-linecap: square;
+  stroke-linejoin: round;
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.graph-arrow {
+  fill: var(--article-muted);
+}
+
+.graph-edge-label {
+  fill: var(--accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-anchor: middle;
+}
+
+@media (max-width: 760px) {
+  .article-graph {
+    margin-block: 2.25rem 2.75rem;
+  }
+
+  .article-graph__stage {
+    padding-inline: 0.75rem;
+    justify-content: flex-start;
+  }
+}

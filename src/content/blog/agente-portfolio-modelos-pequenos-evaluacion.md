@@ -26,15 +26,18 @@ Eso convirtió la elección del modelo, el retrieval y la evaluación en parte d
 
 El runtime actual usa dos servicios `llama.cpp` residentes:
 
-```text
-LAPTOP / CPU
-│
-├── Qwen3.5-2B Q6
-│      └── generación conversacional
-│
-└── Qwen3-Embedding-0.6B Q8
-       ├── routing semántico
-       └── retrieval del perfil
+```graph
+title: Runtime local sobre CPU
+direction: LR
+laptop[terminal]: LAPTOP / CPU
+llm[accent]: Qwen3.5-2B Q6
+embedding[accent]: Qwen3-Embedding-0.6B Q8
+generation: generación conversacional
+semantic: routing semántico\nretrieval del perfil
+laptop -> llm
+laptop -> embedding
+llm -> generation
+embedding -> semantic
 ```
 
 Ambos están configurados con `n_gpu_layers=0`.
@@ -51,12 +54,14 @@ Durante el desarrollo probé variantes pequeñas alrededor de 0.8B y 2B parámet
 
 La tentación con CPU es obvia:
 
-```text
-menos parámetros
-      ↓
-menos costo
-      ↓
-menos latencia
+```graph
+title: La tentación de optimizar sólo por tamaño
+direction: LR
+parameters[terminal]: menos parámetros
+cost: menos costo
+latency[accent]: menos latencia
+parameters -> cost
+cost -> latency
 ```
 
 Pero esa ecuación está incompleta.
@@ -77,35 +82,32 @@ Sí necesito recuperar conocimiento relevante. Lo que no necesito es toda la inf
 
 El conocimiento ya existe como un perfil estructurado y controlado.
 
-```text
-PROFILE
-   │
-   ▼
-small documents
-   │
-   ▼
-embeddings at startup
-   │
-   ▼
-cache in memory
+```graph
+title: Índice de conocimiento en memoria
+direction: TB
+profile[terminal]: PROFILE
+documents: small documents
+startup: embeddings at startup
+cache[accent]: cache in memory
+profile -> documents
+documents -> startup
+startup -> cache
 ```
 
 Por consulta:
 
-```text
-question
-   │
-   ▼
-query embedding
-   │
-   ▼
-cosine similarity
-   │
-   ▼
-top relevant documents
-   │
-   ▼
-Qwen3.5-2B
+```graph
+title: Retrieval por consulta
+direction: TB
+question[terminal]: question
+query: query embedding
+similarity: cosine similarity
+documents: top relevant documents
+llm[accent]: Qwen3.5-2B
+question -> query
+query -> similarity
+similarity -> documents
+documents -> llm
 ```
 
 Los vectores de los documentos se calculan una sola vez y se reutilizan durante la vida del proceso. El contexto tiene límites explícitos de cantidad de documentos y caracteres.
@@ -118,27 +120,36 @@ Es retrieval aumentado, pero deliberadamente pequeño.
 
 Al principio el ciclo de prueba era inevitablemente manual:
 
-```text
-preguntar
-   ↓
-leer respuesta
-   ↓
-“parece bien”
+```graph
+title: Validación manual inicial
+direction: LR
+ask[terminal]: preguntar
+read: leer respuesta
+looks[muted]: “parece bien”
+ask -> read
+read -> looks
 ```
 
 Eso sirve mientras estás construyendo. Después deja de ser suficiente.
 
 La evaluación fue creciendo hacia un corpus de casos que obliga a mirar dimensiones separadas:
 
-```text
-┌─────────────────────────┐
-│ routing correcto        │
-│ conocimiento relevante  │
-│ afirmaciones soportadas │
-│ idioma correcto         │
-│ latencia                │
-│ consistencia            │
-└─────────────────────────┘
+```graph
+title: Dimensiones de evaluación
+direction: LR
+evaluation[accent]: EVALUACIÓN
+routing: routing correcto
+knowledge: conocimiento relevante
+support: afirmaciones soportadas
+language: idioma correcto
+latency: latencia
+consistency: consistencia
+evaluation -> routing
+evaluation -> knowledge
+evaluation -> support
+evaluation -> language
+evaluation -> latency
+evaluation -> consistency
 ```
 
 La diferencia es importante.
