@@ -1,6 +1,10 @@
+.hero.container {
+  width: min(calc(100% - 3rem), 108rem);
+}
+
 .hero {
-  grid-template-columns: minmax(0, 1.05fr) minmax(520px, 0.95fr);
-  gap: clamp(3rem, 5vw, 5.5rem);
+  grid-template-columns: minmax(0, 0.98fr) minmax(660px, 1.02fr);
+  gap: clamp(2.5rem, 3.5vw, 4.25rem);
 }
 
 .hero-visual {
@@ -47,15 +51,15 @@
 .hero-graph .article-graph__svg {
   width: 100%;
   height: auto;
-  max-width: 900px;
+  max-width: none;
 }
 
 .hero-graph .graph-node text {
-  font-size: 18px;
+  font-size: 21px;
 }
 
 .hero-graph .graph-edge-label {
-  font-size: 15px;
+  font-size: 17px;
   stroke: var(--bg);
 }
 
@@ -103,17 +107,21 @@
 }
 
 .hero-visual .visual-caption {
-  margin-top: 0.8rem;
+  margin-top: 0.9rem;
 }
 
 @media (max-width: 1180px) {
   .hero {
-    grid-template-columns: minmax(0, 1fr) minmax(440px, 1fr);
-    gap: clamp(2.5rem, 4vw, 4rem);
+    grid-template-columns: minmax(0, 1fr) minmax(520px, 1fr);
+    gap: clamp(2.25rem, 3.5vw, 3.5rem);
   }
 
-  .hero-graph .article-graph__svg {
-    max-width: 820px;
+  .hero-graph .graph-node text {
+    font-size: 20px;
+  }
+
+  .hero-graph .graph-edge-label {
+    font-size: 16px;
   }
 }
 
@@ -124,17 +132,17 @@
   }
 
   .hero-visual {
-    width: min(100%, 820px);
+    width: min(100%, 900px);
     margin-left: auto;
     padding-top: 0;
-  }
-
-  .hero-graph .article-graph__svg {
-    max-width: 820px;
   }
 }
 
 @media (max-width: 760px) {
+  .hero.container {
+    width: min(calc(100% - 2rem), 88rem);
+  }
+
   .hero-visual {
     width: 100%;
     margin-inline: auto;
@@ -148,6 +156,14 @@
   .hero-graph .article-graph__svg {
     min-width: 0;
     max-width: 100%;
+  }
+
+  .hero-graph .graph-node text {
+    font-size: 18px;
+  }
+
+  .hero-graph .graph-edge-label {
+    font-size: 14px;
   }
 
   .hero-visual .visual-caption {
