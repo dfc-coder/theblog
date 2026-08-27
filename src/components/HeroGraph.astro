@@ -8,20 +8,21 @@ const source = `
 title: Cómo se construyen estas notas
 direction: LR
 
-reality[terminal]: REALIDAD
+real[terminal]: REALIDAD
 observe: OBSERVAR
 understand: ENTENDER
 decide: DECIDIR
-build: IMPLEMENTAR
+implement: IMPLEMENTAR
 production[accent]: PRODUCCIÓN
 learn[muted]: APRENDER
 
-reality -> observe | señales
+real -> observe | señales
 observe -> understand | contexto
 understand -> decide | trade-offs
-decide -> build
-build -> production
+decide -> implement
+implement -> production
 production -> learn | feedback
+learn ~> observe | feedback
 `;
 
 const graphMarkup = applyHandDrawnSkin(
