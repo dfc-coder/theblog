@@ -1,0 +1,106 @@
+.hero-graph-host {
+  width: 100%;
+  min-width: 0;
+}
+
+.hero-graph {
+  --article-bg: var(--bg);
+  --article-text: var(--text);
+  --article-muted: var(--muted);
+  --article-line: var(--line);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.hero-graph figcaption {
+  display: none;
+}
+
+.hero-graph .article-graph__viewport {
+  width: 100%;
+  overflow: visible;
+}
+
+.hero-graph .article-graph__stage {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  justify-content: center;
+}
+
+.hero-graph .article-graph__svg {
+  width: 100%;
+  height: auto;
+  max-width: 680px;
+}
+
+.hero-graph .graph-node text {
+  font-size: 17px;
+}
+
+.hero-graph .graph-edge-label {
+  font-size: 14px;
+  stroke: var(--bg);
+}
+
+.hero-graph .graph-node--terminal .graph-node-shape {
+  fill: var(--surface-raised);
+  stroke: var(--text);
+}
+
+.hero-graph .graph-node--terminal .graph-node-echo {
+  stroke: var(--text);
+  opacity: 0.28;
+}
+
+.hero-graph .graph-node--terminal text {
+  fill: var(--text);
+}
+
+.hero-graph .graph-node--terminal .graph-hatch {
+  stroke: var(--muted);
+  opacity: 0.42;
+}
+
+.hero-graph .graph-node--accent .graph-node-shape {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.hero-graph .graph-node--accent text {
+  fill: var(--accent-ink);
+}
+
+.hero-graph .graph-node--muted .graph-node-shape {
+  fill: transparent;
+  stroke: var(--muted);
+  stroke-dasharray: 6 4;
+}
+
+.hero-graph .graph-edge-stroke,
+.hero-graph .graph-arrow-hand {
+  stroke: var(--art);
+}
+
+.hero-graph .graph-hatch {
+  stroke: var(--muted);
+}
+
+@media (max-width: 980px) {
+  .hero-graph .article-graph__svg {
+    max-width: 620px;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero-graph .article-graph__stage {
+    padding: 0;
+    justify-content: flex-start;
+  }
+
+  .hero-graph .article-graph__svg {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
