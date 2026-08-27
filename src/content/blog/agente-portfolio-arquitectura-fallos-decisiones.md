@@ -11,19 +11,9 @@ tags:
 draft: false
 ---
 
-Mi portfolio podía mostrar proyectos, experiencia y tecnologías.
+Mi portfolio podía mostrar proyectos, experiencia y tecnologías. Pero seguía siendo una página estática.
 
-Pero seguía siendo una página estática.
-
-Quería que alguien pudiera entrar y preguntar cosas como:
-
-> ¿Qué experiencia tenés desarrollando aplicaciones con LLMs?
-
-o:
-
-> ¿Cuál de tus proyectos se parece más a un sistema de producción?
-
-La primera idea parecía bastante sencilla:
+Quería que alguien pudiera preguntar por mi trabajo y obtener una respuesta útil. El primer diseño parecía obvio:
 
 ```text
 usuario
@@ -35,114 +25,45 @@ LLM
 respuesta
 ```
 
-Y para una demo, funcionaba.
+Funcionó como demo. El problema apareció cuando el agente dejó de ser sólo un chat y pasó a **hablar en mi nombre**.
 
-El problema apareció cuando dejé de pensar en el agente como una interfaz de chat y empecé a pensar en él como algo que **habla en mi nombre**.
+Ahí una respuesta creativa ya no siempre es una buena respuesta.
 
-Ahí la tolerancia al error cambia.
+> **La pregunta dejó de ser “¿cómo genero mejores respuestas?” y pasó a ser “¿qué decisiones debería poder tomar el modelo?”.**
 
-Una respuesta creativa puede ser interesante.
+## 01. El modelo estaba haciendo demasiado
 
-Una respuesta creativa sobre mi experiencia profesional, no.
-
-Y una interpretación incorrecta que termina disparando una acción es todavía peor.
-
-Ese fue el punto de partida real del proyecto.
-
----
-
-## 01. El problema no era generar texto
-
-Hacer que un modelo responda preguntas es fácil.
-
-Hacer que responda de forma consistente, sin inventar información y sin tomar decisiones que no le corresponden, es otro problema.
-
-La primera versión era esencialmente:
-
-```text
-pregunta
-   ↓
-prompt
-   ↓
-modelo
-   ↓
-respuesta
-```
-
-Pero el modelo empezaba a acumular demasiadas responsabilidades:
+La primera versión acumulaba responsabilidades en un mismo lugar:
 
 - entender la intención;
-- decidir qué información usar;
+- elegir información;
 - decidir si correspondía una acción;
 - responder;
 - mantener contexto;
-- respetar restricciones;
-- no inventar.
+- respetar restricciones.
 
-Con modelos grandes, este tipo de arquitectura puede parecer razonable porque el modelo compensa muchos defectos.
+Con un modelo grande, parte de esa complejidad queda escondida. Con uno pequeño, aparece enseguida.
 
-Con modelos pequeños, las costuras aparecen enseguida.
+Y apareció.
 
-Y eso fue exactamente lo que pasó.
-
----
-
-## 02. Funcionaba... hasta que dejaba de funcionar
-
-Las primeras pruebas eran engañosas.
-
-Había conversaciones que funcionaban perfectamente:
+Una conversación podía funcionar cinco veces y cambiar de ruta en la sexta. Una frase sobre disponibilidad podía terminar interpretada como una intención de calendario.
 
 ```text
 USER
-¿Qué experiencia tenés con RAG?
+La semana que viene podríamos hablar.
 
-AGENT
-He trabajado con sistemas RAG orientados a aplicaciones...
-```
+≠
 
-Pero pequeñas variaciones podían cambiar el comportamiento.
-
-```text
-USER
-Contame algo de tu experiencia.
-
-USER
-¿Y con RAG?
-
-AGENT
-...
-```
-
-La respuesta podía seguir siendo buena, pero la ruta interna ya no siempre era la misma.
-
-Peor todavía: una frase relacionada con disponibilidad podía interpretarse como intención de calendario.
-
-Por ejemplo:
-
-> La semana que viene podríamos hablar.
-
-Eso no significa:
-
-```text
 CREATE_EVENT
 ```
 
-El problema no era solamente que el modelo se equivocara.
-
-El problema era que estábamos usando probabilidad para resolver decisiones que necesitaban ser mucho más estables.
-
-Ahí apareció una regla que terminó guiando buena parte del diseño:
+Ese fallo dejó una regla bastante clara:
 
 > **Una respuesta puede ser probabilística. Una regla de seguridad no debería serlo.**
 
----
+## 02. Separar intención, acción y lenguaje
 
-## 03. Separar intención, acción y lenguaje
-
-La siguiente evolución fue sacar responsabilidades del modelo.
-
-La arquitectura empezó a tomar una forma más explícita:
+La solución no fue agregar otro agente. Fue sacar responsabilidades del modelo.
 
 ```text
                          USER
@@ -165,143 +86,58 @@ La arquitectura empezó a tomar una forma más explícita:
                 RESPONSE
 ```
 
-Cada componente pasó a tener una responsabilidad mucho más limitada.
+**Router** clasifica la interacción. No redacta ni ejecuta.
 
-### Router
+**Responder** se ocupa del lenguaje natural: explicar, resumir y mantener el idioma de la conversación.
 
-El router responde una pregunta:
+**Scheduler** concentra la lógica de calendario y sólo actúa cuando la intención y los datos son suficientes.
 
-> ¿Qué tipo de interacción es esta?
+**StreamGuard** controla lo que finalmente se expone al usuario.
 
-No genera la respuesta final.
+La arquitectura empezó a mejorar cuando cada componente pudo describirse en una frase.
 
-No toca calendario.
+## 03. El modelo interpreta; el sistema decide
 
-No administra memoria.
-
-Clasifica.
-
-Nada más.
-
-### Responder
-
-El responder se concentra en lenguaje natural.
-
-Ahí sí queremos flexibilidad.
-
-Puede resumir, explicar, adaptar el tono y responder en español o inglés.
-
-Pero no debería decidir por sí solo que una conversación necesita una acción sensible.
-
-### Scheduler
-
-Las operaciones relacionadas con calendario quedaron aisladas.
-
-La interpretación puede involucrar un modelo.
-
-La ejecución, no.
-
-Antes de hacer algo, el sistema debe validar que la intención esté clara y que los parámetros sean suficientes.
-
-### StreamGuard
-
-Antes de entregar la respuesta al usuario existe una última capa de control.
-
-Conceptualmente:
-
-```text
-modelo genera
-      ↓
-sistema valida
-      ↓
-usuario recibe
-```
-
-El prompt dejó de ser la única línea de defensa.
-
----
-
-## 04. El modelo puede interpretar; el sistema debe decidir
-
-Un LLM es muy bueno trabajando con ambigüedad.
-
-Por ejemplo:
+Hay problemas para los que un LLM es excelente:
 
 > Estoy buscando a alguien que haya trabajado con sistemas distribuidos y AI.
 
-Eso requiere interpretación.
+Eso requiere interpretar lenguaje ambiguo.
 
-No queremos resolverlo con veinte `if`.
-
-Pero hay preguntas que funcionan mejor como código:
+Pero otras decisiones no necesitan creatividad:
 
 ```text
 ¿la fecha es válida?
-¿el horario existe?
-¿hay información suficiente?
+¿hay datos suficientes?
 ¿esta acción requiere confirmación?
 ¿el estado permite continuar?
 ```
 
-La división terminó siendo aproximadamente esta:
+La división terminó siendo esta:
 
 | Problema | Responsable |
 |---|---|
-| Interpretar lenguaje natural | LLM |
+| Interpretar lenguaje | LLM |
 | Clasificar intención | Router |
-| Generar explicación | LLM |
+| Generar una explicación | LLM |
 | Validar parámetros | Código |
 | Aplicar reglas de calendario | Código |
 | Ejecutar una acción | Tool / servicio |
 | Controlar salida | Guard |
-| Mantener conocimiento profesional | Datos estructurados |
 
-Parece un cambio pequeño.
+**El modelo puede trabajar con ambigüedad. El sistema conserva la autoridad sobre las reglas.**
 
-En la práctica fue uno de los más importantes.
+## 04. KISS se volvió una restricción
 
----
+Cada fallo invitaba a agregar algo: más memoria, más tools, planificación, RAG, otro agente, un grafo.
 
-## 05. KISS dejó de ser una preferencia
+Empezamos a usar una pregunta más útil:
 
-Durante el desarrollo aparecieron muchas oportunidades para agregar cosas:
+> **¿Qué problema concreto resuelve esta nueva capa?**
 
-- más agentes;
-- más memoria;
-- planificación;
-- grafos;
-- RAG;
-- evaluadores internos;
-- más tools;
-- más estados.
+Si no podíamos responderla claramente, no la agregábamos.
 
-La pregunta empezó a ser:
-
-> **¿Qué problema concreto resuelve esta capa?**
-
-Si no había una respuesta clara, probablemente esa capa no tenía que existir.
-
-Eso cambió la dirección del proyecto.
-
-En lugar de preguntar:
-
-> ¿Qué más podemos agregar?
-
-empezamos a preguntar:
-
-> ¿Qué podemos sacar sin perder comportamiento?
-
-La arquitectura terminó siendo más pequeña y, sobre todo, más fácil de entender.
-
----
-
-## 06. ¿Por qué no LangGraph?
-
-LangGraph parecía una opción natural.
-
-Había routing, estado y diferentes caminos de ejecución.
-
-Pero el flujo real seguía siendo bastante corto:
+Por eso tampoco usamos LangGraph en esta etapa. El flujo real todavía podía explicarse así:
 
 ```text
 route
@@ -311,40 +147,13 @@ execute
 respond
 ```
 
-Introducir un grafo habría agregado otra abstracción para representar algo que todavía podíamos explicar mirando unos pocos componentes.
+Un grafo tendría sentido con branching complejo, múltiples tools encadenadas, reintentos o estados persistentes. Todavía no teníamos ese problema.
 
-No era una crítica a LangGraph.
+La arquitectura futura no debía convertirse en complejidad presente.
 
-Era una cuestión de proporcionalidad.
+## 05. La arquitectura empezó a parecer software normal
 
-Un framework de workflows empieza a tener mucho más sentido cuando aparecen:
-
-- branching complejo;
-- varias tools encadenadas;
-- reintentos;
-- estados persistentes;
-- human-in-the-loop;
-- workflows largos.
-
-Nuestro problema todavía no estaba ahí.
-
-La regla fue simple:
-
-> **Si podemos entender el flujo completo mirando unos pocos archivos, no necesitamos construir una plataforma alrededor del agente.**
-
-Eso puede cambiar más adelante.
-
-La arquitectura no intenta impedirlo.
-
-Simplemente evita pagar ese costo antes de necesitarlo.
-
----
-
-## 07. La arquitectura final se empezó a parecer a software normal
-
-Después de varias iteraciones, el sistema dejó de parecer un “agente inteligente” y empezó a parecer más una aplicación bien separada.
-
-Eso era una buena señal.
+Después de varias iteraciones, el agente dejó de parecer una entidad que “hace todo” y pasó a parecer una aplicación con límites claros.
 
 ```text
                            USER
@@ -373,34 +182,21 @@ Eso era una buena señal.
 
 El LLM seguía siendo importante.
 
-Pero ya no era el sistema completo.
+Pero **ya no era el sistema completo**. Era un componente dentro del sistema.
 
-Era un componente dentro del sistema.
+## 06. Los fallos terminaron diseñando el agente
 
----
+Las conversaciones correctas demostraban que el agente podía funcionar. Las incorrectas mostraban dónde estaba mal diseñada la arquitectura.
 
-## 08. Lo más útil fueron los fallos
+Cada fallo obligaba a decidir:
 
-Las conversaciones correctas demostraban que el agente podía funcionar.
+- ¿se corrige con contexto?;
+- ¿con una regla?;
+- ¿separando responsabilidades?;
+- ¿o estamos usando un LLM donde no hace falta uno?
 
-Las incorrectas mostraban dónde estaba mal diseñada la arquitectura.
+Ese proceso redujo comportamiento implícito y aumentó decisiones explícitas.
 
-Cada fallo obligaba a hacer una pregunta:
+> **Construir un agente confiable consistió menos en darle más autonomía al modelo y más en decidir qué responsabilidades no debía tener.**
 
-> ¿Esto se corrige con un prompt?
-
-> ¿Con mejor contexto?
-
-> ¿Con una regla?
-
-> ¿Separando responsabilidades?
-
-> ¿O estamos usando un LLM para resolver algo que no necesita un LLM?
-
-Ese proceso fue reduciendo comportamiento implícito y aumentando decisiones explícitas.
-
-Y esa probablemente fue la lección principal de esta primera etapa:
-
-**Construir un agente confiable consistió menos en darle más autonomía al modelo y más en decidir qué responsabilidades no debía tener.**
-
-En la [segunda parte](/posts/agente-portfolio-modelos-pequenos-evaluacion/) voy a entrar en el otro problema: una vez que la arquitectura parece razonable, **¿cómo comprobamos que realmente funciona?**
+En la [segunda parte](/posts/agente-portfolio-modelos-pequenos-evaluacion/) el foco cambia: una vez que la arquitectura parece razonable, **¿cómo comprobamos que realmente funciona?**
