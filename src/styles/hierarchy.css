@@ -49,6 +49,12 @@
   max-height: 520px;
 }
 
+.art-orbit,
+.hero-visual:hover .art-orbit {
+  transform: none;
+  transition: none;
+}
+
 .archive-section {
   padding-block: clamp(4.5rem, 7vw, 6.75rem);
 }
