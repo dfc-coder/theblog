@@ -20,11 +20,24 @@ const MARGIN_X = 24;
 const MARGIN_Y = 28;
 const LONG_EDGE_LANE_GAP = 10;
 
+export interface GraphCompileOptions {
+  readonly serpentineColumns?: number;
+  readonly viewport?: 'artboard' | 'content';
+  readonly viewportPadding?: number;
+}
+
 interface SizedNode {
   readonly node: GraphNode;
   readonly width: number;
   readonly height: number;
   readonly rank: number;
+}
+
+interface SvgViewport {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
 }
 
 const escapeHtml = (value: string): string =>
@@ -147,7 +160,7 @@ const centerArtboardHeight = (contentHeight: number): { height: number; offsetY:
   };
 };
 
-const serpentineColumns = (nodeCount: number): number => {
+const defaultSerpentineColumns = (nodeCount: number): number => {
   if (nodeCount <= 3) {
     return Math.max(nodeCount, 1);
   }
@@ -160,12 +173,21 @@ const serpentineColumns = (nodeCount: number): number => {
   return 4;
 };
 
+const resolveSerpentineColumns = (nodeCount: number, preferred?: number): number => {
+  if (preferred === undefined) {
+    return defaultSerpentineColumns(nodeCount);
+  }
+
+  return Math.max(1, Math.min(Math.floor(preferred), Math.min(nodeCount, 4)));
+};
+
 const createSerpentineLayout = (
   graph: GraphDefinition,
-  rawRanks: readonly (readonly SizedNode[])[]
+  rawRanks: readonly (readonly SizedNode[])[],
+  preferredColumns?: number
 ): GraphLayout => {
   const ordered = rawRanks.flat();
-  const columns = serpentineColumns(ordered.length);
+  const columns = resolveSerpentineColumns(ordered.length, preferredColumns);
   const rows: SizedNode[][] = [];
 
   for (let index = 0; index < ordered.length; index += columns) {
@@ -379,7 +401,7 @@ const createFanoutLayout = (
   };
 };
 
-const createLayout = (graph: GraphDefinition): GraphLayout => {
+const createLayout = (graph: GraphDefinition, options: GraphCompileOptions): GraphLayout => {
   const nodeRanks = buildRanks(graph);
   const rawRanks = buildRawRanks(graph, nodeRanks);
   const fanoutHub = findFanoutHub(graph);
@@ -389,7 +411,7 @@ const createLayout = (graph: GraphDefinition): GraphLayout => {
   }
 
   if (rawRanks.every((rank) => rank.length === 1)) {
-    return createSerpentineLayout(graph, rawRanks);
+    return createSerpentineLayout(graph, rawRanks, options.serpentineColumns);
   }
 
   const lrWidth = rawRanks.length * NODE_WIDTH + Math.max(rawRanks.length - 1, 0) * RANK_GAP;
@@ -499,8 +521,8 @@ const edgePath = (
   return regularEdgePath(from, to);
 };
 
-const stableId = (graph: GraphDefinition): string => {
-  const source = JSON.stringify(graph);
+const stableId = (graph: GraphDefinition, options: GraphCompileOptions): string => {
+  const source = JSON.stringify({ graph, options });
   let hash = 2166136261;
 
   for (let index = 0; index < source.length; index += 1) {
@@ -511,9 +533,38 @@ const stableId = (graph: GraphDefinition): string => {
   return `graph-arrow-${(hash >>> 0).toString(36)}`;
 };
 
-export function compileGraphSvg(graph: GraphDefinition): string {
-  const layout = createLayout(graph);
-  const arrowId = stableId(graph);
+const resolveViewport = (layout: GraphLayout, options: GraphCompileOptions): SvgViewport => {
+  if (options.viewport !== 'content' || layout.kind !== 'serpentine' || layout.nodes.length === 0) {
+    return { x: 0, y: 0, width: layout.width, height: layout.height };
+  }
+
+  const padding = Math.max(options.viewportPadding ?? 28, 0);
+  const minNodeX = Math.min(...layout.nodes.map((node) => node.x - node.width / 2));
+  const maxNodeX = Math.max(...layout.nodes.map((node) => node.x + node.width / 2));
+  const minNodeY = Math.min(...layout.nodes.map((node) => node.y - node.height / 2));
+  const maxNodeY = Math.max(...layout.nodes.map((node) => node.y + node.height / 2));
+  const x = Math.max(0, minNodeX - padding);
+  const y = Math.max(0, minNodeY - padding);
+  const maxX = Math.min(layout.width, maxNodeX + padding);
+  const maxY = Math.min(layout.height, maxNodeY + padding);
+
+  return {
+    x,
+    y,
+    width: Math.max(maxX - x, 1),
+    height: Math.max(maxY - y, 1)
+  };
+};
+
+const svgNumber = (value: number): string => Number(value.toFixed(2)).toString();
+
+export function compileGraphSvg(
+  graph: GraphDefinition,
+  options: GraphCompileOptions = {}
+): string {
+  const layout = createLayout(graph, options);
+  const viewport = resolveViewport(layout, options);
+  const arrowId = stableId(graph, options);
   const nodesById = new Map(layout.nodes.map((node) => [node.id, node]));
   let longEdgeIndex = 0;
 
@@ -546,14 +597,15 @@ export function compileGraphSvg(graph: GraphDefinition): string {
 
   const title = graph.title ? `<figcaption>${escapeHtml(graph.title)}</figcaption>` : '';
   const aria = graph.title ? ` aria-label="${escapeHtml(graph.title)}"` : ' aria-label="Architecture diagram"';
-  const svgWidth = Math.ceil(layout.width);
-  const svgHeight = Math.ceil(layout.height);
+  const svgWidth = Math.ceil(viewport.width);
+  const svgHeight = Math.ceil(viewport.height);
+  const viewBox = [viewport.x, viewport.y, viewport.width, viewport.height].map(svgNumber).join(' ');
 
   return `<figure class="article-graph" data-graph-layout="${layout.kind}">
 ${title}
 <div class="article-graph__viewport">
 <div class="article-graph__stage">
-<svg class="article-graph__svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" role="img"${aria}>
+<svg class="article-graph__svg" width="${svgWidth}" height="${svgHeight}" viewBox="${viewBox}" role="img"${aria}>
   <defs>
     <marker id="${arrowId}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 8 4 L 0 8 z" class="graph-arrow"/>
