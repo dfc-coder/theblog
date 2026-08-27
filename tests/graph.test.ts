@@ -116,5 +116,8 @@ describe('graph DSL', () => {
     expect(sketched).toContain('graph-sketch-echo');
     expect(sketched).toContain('width="720"');
     expect(sketched).toContain('request');
+    expect(sketched.lastIndexOf('graph-edge-labels')).toBeGreaterThan(
+      sketched.lastIndexOf('graph-node')
+    );
   });
 });
