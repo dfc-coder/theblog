@@ -21,10 +21,20 @@
   overscroll-behavior-inline: contain;
 }
 
+.article-graph__stage {
+  display: grid;
+  width: max-content;
+  min-width: 100%;
+  min-height: 18rem;
+  padding: 1rem 1.25rem 1.25rem;
+  place-items: center;
+}
+
 .article-graph__svg {
   display: block;
-  width: 100%;
+  width: auto;
   height: auto;
+  max-width: none;
   overflow: visible;
 }
 
@@ -100,8 +110,8 @@
     margin-block: 2.25rem 2.75rem;
   }
 
-  .article-graph__svg {
-    width: auto;
-    max-width: none;
+  .article-graph__stage {
+    min-height: 15rem;
+    padding-inline: 0.75rem;
   }
 }
