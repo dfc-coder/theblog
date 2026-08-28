@@ -30,6 +30,39 @@ Si `SITE_URL` no está definido, el desarrollo local usa `http://localhost:4321`
 
 Los posts viven en `src/content/blog/*.md` y se validan con el schema de `src/content/blog/schema.ts`.
 
+## Diagram DSL
+
+Los bloques Markdown `graph` se compilan a SVG estático durante el build. La DSL describe intención y estructura; el compilador resuelve geometría, layout y routing.
+
+```text
+layout: serpentine
+columns: 3
+viewport: content
+skin: handdrawn
+
+observe: OBSERVAR
+understand: ENTENDER
+learn[terminal]: APRENDER
+
+observe -> understand | contexto
+understand -> learn
+learn ~> observe | feedback
+```
+
+Directivas soportadas:
+
+- `direction: LR | TB`
+- `layout: auto | serpentine | fanout | layered-lr | layered-tb`
+- `columns: 1..4`, únicamente con `auto` o `serpentine`
+- `viewport: artboard | content`
+- `skin: clean | handdrawn`
+
+Defaults: `layout: auto`, `viewport: artboard` y `skin: handdrawn`. Los diagramas existentes no necesitan declarar estas opciones.
+
+Tipos de nodo: `default`, `terminal`, `accent`, `muted`. `->` define relaciones estructurales que participan del DAG; `~>` define feedback visual y no altera el ranking estructural.
+
+No se soportan coordenadas manuales, paths arbitrarios, CSS dentro de la DSL ni drag and drop. `groups` queda fuera de esta versión.
+
 ## Política de sizing responsive
 
 Las medidas espaciales de UI usan unidades relativas (`rem`, `em`, `%`, `vw`, `vh`) y funciones fluidas como `clamp()`, `min()` y `max()`.
