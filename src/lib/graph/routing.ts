@@ -22,23 +22,40 @@ const nodeBounds = (node: GraphSceneNode): ComponentBounds => ({
   height: node.height
 });
 
+const anchorBounds = (node: GraphSceneNode, profile: LayoutProfile): ComponentBounds => {
+  const width = profile.anchorWidth ?? node.width;
+  const height = profile.anchorHeight ?? node.height;
+  return {
+    x: node.x - width / 2,
+    y: node.y - height / 2,
+    width,
+    height
+  };
+};
+
 const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
 
-const regularRoute = (from: GraphSceneNode, to: GraphSceneNode): readonly Point[] => {
+const regularRoute = (
+  from: GraphSceneNode,
+  to: GraphSceneNode,
+  profile: LayoutProfile
+): readonly Point[] => {
   const dx = to.x - from.x;
   const dy = to.y - from.y;
+  const fromBox = anchorBounds(from, profile);
+  const toBox = anchorBounds(to, profile);
 
   if (Math.abs(dx) >= Math.abs(dy)) {
     const direction = Math.sign(dx) || 1;
-    const start = { x: from.x + (from.width / 2) * direction, y: from.y };
-    const end = { x: to.x - (to.width / 2) * direction, y: to.y };
+    const start = { x: direction > 0 ? fromBox.x + fromBox.width : fromBox.x, y: from.y };
+    const end = { x: direction > 0 ? toBox.x : toBox.x + toBox.width, y: to.y };
     const middleX = (start.x + end.x) / 2;
     return [start, { x: middleX, y: start.y }, { x: middleX, y: end.y }, end];
   }
 
   const direction = Math.sign(dy) || 1;
-  const start = { x: from.x, y: from.y + (from.height / 2) * direction };
-  const end = { x: to.x, y: to.y - (to.height / 2) * direction };
+  const start = { x: from.x, y: direction > 0 ? fromBox.y + fromBox.height : fromBox.y };
+  const end = { x: to.x, y: direction > 0 ? toBox.y : toBox.y + toBox.height };
   const middleY = (start.y + end.y) / 2;
   return [start, { x: start.x, y: middleY }, { x: end.x, y: middleY }, end];
 };
@@ -103,8 +120,8 @@ const feedbackRoute = (
     ? clamp(bounds.x - laneGap, minX, maxX)
     : clamp(bounds.x + bounds.width + laneGap, minX, maxX);
 
-  const fromBox = nodeBounds(from);
-  const toBox = nodeBounds(to);
+  const fromBox = anchorBounds(from, profile);
+  const toBox = anchorBounds(to, profile);
   const start = useLeft
     ? { x: fromBox.x, y: from.y }
     : { x: fromBox.x + fromBox.width, y: from.y };
@@ -146,7 +163,7 @@ export function routeEdges(
 
     const kind = edge.kind ?? 'default';
     if (kind !== 'feedback') {
-      const points = compactPolyline(regularRoute(from, to));
+      const points = compactPolyline(regularRoute(from, to, profile));
       return {
         from: edge.from,
         to: edge.to,
