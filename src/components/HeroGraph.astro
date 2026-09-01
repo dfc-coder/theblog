@@ -1,5 +1,5 @@
 ---
-import { compileGraphSvg } from '../lib/graph/compiler';
+import { compileGraphVariantSvg } from '../lib/graph/compiler';
 import { applyHandDrawnSkin } from '../lib/graph/markdown';
 import { parseGraph } from '../lib/graph/parser';
 import '../styles/hero-graph.css';
@@ -23,21 +23,21 @@ implement -> production
 production ~> learn
 `;
 
-const HERO_FEEDBACK_PATH = 'M 244 142 C 330 132 438 94 500 78';
-
-const compiledGraph = compileGraphSvg(parseGraph(source), {
-  serpentineColumns: 3,
-  viewport: 'content',
-  viewportPadding: 30
-}).replace(
-  /(<g class="graph-edge graph-edge--feedback"><path d=")[^"]+(" marker-end=)/,
-  `$1${HERO_FEEDBACK_PATH}$2`
+const graph = parseGraph(source);
+const svg = applyHandDrawnSkin(
+  compileGraphVariantSvg(graph, 'desktop', {
+    serpentineColumns: 3,
+    viewport: 'content',
+    viewportPadding: 30
+  })
 );
-
-const graphMarkup = applyHandDrawnSkin(compiledGraph).replace(
-  'class="article-graph"',
-  'class="article-graph hero-graph"'
-);
+const title = graph.title ? `<figcaption>${graph.title}</figcaption>` : '';
+const graphMarkup = `<figure class="article-graph hero-graph" data-graph-skin="handwrite">
+${title}
+<div class="article-graph__viewport">
+  <div class="article-graph__stage">${svg}</div>
+</div>
+</figure>`;
 ---
 
 <div class="hero-graph-host" set:html={graphMarkup} />
