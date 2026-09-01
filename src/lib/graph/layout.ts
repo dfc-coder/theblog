@@ -226,53 +226,137 @@ const classifyGraph = (graph: GraphDiagramDefinition, analysis: ComponentGraph):
   return 'layered';
 };
 
-const cycleOrder = (
+const structuralRankGroups = (
   component: Component,
-  graph: GraphDiagramDefinition,
-  analysis: ComponentGraph
-): string[] => {
+  graph: GraphDiagramDefinition
+): string[][] | undefined => {
   const members = new Set(component.nodeIds);
-  const incomingExternal = graph.edges
-    .filter((edge) => members.has(edge.to) && !members.has(edge.from))
-    .map((edge) => edge.to);
-  const start = incomingExternal[0] ?? component.nodeIds[0];
-  if (!start) return [];
+  const order = new Map(graph.nodes.map((node, index) => [node.id, index]));
+  const outgoing = new Map(component.nodeIds.map((id) => [id, new Set<string>()]));
+  const indegree = new Map(component.nodeIds.map((id) => [id, 0]));
+  const rank = new Map(component.nodeIds.map((id) => [id, 0]));
 
-  const structural = new Map(component.nodeIds.map((id) => [id, [] as string[]]));
   for (const edge of graph.edges) {
-    if (edge.kind === 'feedback' || !members.has(edge.from) || !members.has(edge.to)) continue;
-    structural.get(edge.from)?.push(edge.to);
+    if (edge.kind === 'feedback' || edge.from === edge.to || !members.has(edge.from) || !members.has(edge.to)) continue;
+    const targets = outgoing.get(edge.from)!;
+    if (targets.has(edge.to)) continue;
+    targets.add(edge.to);
+    indegree.set(edge.to, (indegree.get(edge.to) ?? 0) + 1);
   }
 
-  const seen = new Set<string>();
-  const ordered: string[] = [];
-  const queue = [start];
+  const queue = component.nodeIds.filter((id) => (indegree.get(id) ?? 0) === 0);
+  let visited = 0;
   while (queue.length) {
+    queue.sort((a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0));
     const current = queue.shift()!;
-    if (seen.has(current)) continue;
-    seen.add(current);
-    ordered.push(current);
-    for (const target of structural.get(current) ?? []) if (!seen.has(target)) queue.push(target);
+    visited += 1;
+    for (const target of outgoing.get(current) ?? []) {
+      rank.set(target, Math.max(rank.get(target) ?? 0, (rank.get(current) ?? 0) + 1));
+      const remaining = (indegree.get(target) ?? 0) - 1;
+      indegree.set(target, remaining);
+      if (remaining === 0) queue.push(target);
+    }
   }
-  for (const nodeId of component.nodeIds) if (!seen.has(nodeId)) ordered.push(nodeId);
-  void analysis;
-  return ordered;
+
+  if (visited !== component.nodeIds.length) return undefined;
+  const maxRank = Math.max(...rank.values(), 0);
+  const groups = Array.from({ length: maxRank + 1 }, () => [] as string[]);
+  for (const id of component.nodeIds) groups[rank.get(id) ?? 0]!.push(id);
+  return groups;
 };
 
-const cycleSlots = (count: number): readonly { col: number; row: number }[] => {
+const fallbackCycleSlots = (count: number): readonly { col: number; row: number }[] => {
   if (count <= 1) return [{ col: 0, row: 0 }];
   if (count === 2) return [{ col: 0, row: 0 }, { col: 1, row: 0 }];
-  if (count === 3) return [{ col: 0, row: 0 }, { col: 1, row: 0 }, { col: 0.5, row: 1 }];
-  if (count === 4) return [
-    { col: 0, row: 0 }, { col: 1, row: 0 }, { col: 1, row: 1 }, { col: 0, row: 1 }
-  ];
-  if (count === 5) return [
-    { col: 0, row: 0 }, { col: 1, row: 0 }, { col: 1, row: 1 }, { col: 1, row: 2 }, { col: 0, row: 2 }
-  ];
-  return [
-    { col: 0, row: 0 }, { col: 1, row: 0 }, { col: 2, row: 0 },
-    { col: 2, row: 1 }, { col: 1, row: 1 }, { col: 0, row: 1 }
-  ];
+  const columns = Math.ceil(count / 2);
+  const slots: { col: number; row: number }[] = [];
+  for (let index = 0; index < Math.min(columns, count); index += 1) slots.push({ col: index, row: 0 });
+  for (let index = columns; index < count; index += 1) slots.push({ col: columns - 1 - (index - columns), row: 1 });
+  return slots;
+};
+
+const layoutCyclicComponent = (
+  component: Component,
+  graph: GraphDiagramDefinition,
+  sourceNodes: ReadonlyMap<string, GraphNode>,
+  profile: LayoutProfile,
+  rank: number
+): ComponentLayout => {
+  const groups = structuralRankGroups(component, graph);
+  const sizedById = new Map(component.nodeIds.map((id) => [id, nodeSize(sourceNodes.get(id)!, profile)]));
+
+  if (!groups) {
+    const slots = fallbackCycleSlots(component.nodeIds.length);
+    const sized = component.nodeIds.map((id) => sizedById.get(id)!);
+    const cols = Math.max(...slots.map((slot) => slot.col)) + 1;
+    const rows = Math.max(...slots.map((slot) => slot.row)) + 1;
+    const maxNodeHeight = Math.max(...sized.map((node) => node.height));
+    const width = cols * profile.nodeWidth + Math.max(0, cols - 1) * profile.nodeGap;
+    const height = rows * maxNodeHeight + Math.max(0, rows - 1) * profile.nodeGap;
+    const nodes = sized.map((node, index) => {
+      const slot = slots[index] ?? { col: 0, row: 0 };
+      return {
+        ...node,
+        x: slot.col * (profile.nodeWidth + profile.nodeGap) + profile.nodeWidth / 2,
+        y: slot.row * (maxNodeHeight + profile.nodeGap) + maxNodeHeight / 2
+      };
+    });
+    return { ...component, width, height, nodes, rank };
+  }
+
+  const direction = profile.direction && profile.direction !== 'auto' ? profile.direction : (graph.direction ?? 'LR');
+  if (direction === 'TB') {
+    const rowHeights = groups.map((group) => Math.max(...group.map((id) => sizedById.get(id)!.height)));
+    const rowWidths = groups.map((group) =>
+      group.reduce((sum, id, index) => sum + sizedById.get(id)!.width + (index ? profile.nodeGap : 0), 0)
+    );
+    const width = Math.max(...rowWidths, profile.nodeWidth);
+    const height = rowHeights.reduce((sum, value, index) => sum + value + (index ? profile.nodeGap : 0), 0);
+    const nodes: GraphSceneNode[] = [];
+    let y = 0;
+    groups.forEach((group, groupIndex) => {
+      const rowHeight = rowHeights[groupIndex] ?? profile.nodeHeight;
+      let x = (width - (rowWidths[groupIndex] ?? 0)) / 2;
+      for (const id of group) {
+        const node = sizedById.get(id)!;
+        nodes.push({ ...node, x: x + node.width / 2, y: y + rowHeight / 2 });
+        x += node.width + profile.nodeGap;
+      }
+      y += rowHeight + profile.nodeGap;
+    });
+    return { ...component, width, height, nodes, rank };
+  }
+
+  const blocks = groups.map((group) => {
+    const width = Math.max(...group.map((id) => sizedById.get(id)!.width), profile.nodeWidth);
+    const height = group.reduce((sum, id, index) => sum + sizedById.get(id)!.height + (index ? profile.nodeGap : 0), 0);
+    return { group, width, height };
+  });
+  const rows = Array.from({ length: Math.ceil(blocks.length / 2) }, (_, row) => blocks.slice(row * 2, row * 2 + 2));
+  const rowWidths = rows.map((row) => row.reduce((sum, block, index) => sum + block.width + (index ? profile.nodeGap : 0), 0));
+  const rowHeights = rows.map((row) => Math.max(...row.map((block) => block.height)));
+  const width = Math.max(...rowWidths, profile.nodeWidth);
+  const height = rowHeights.reduce((sum, value, index) => sum + value + (index ? profile.nodeGap : 0), 0);
+  const nodes: GraphSceneNode[] = [];
+  let y = 0;
+
+  rows.forEach((row, rowIndex) => {
+    const visual = rowIndex % 2 === 0 ? row : [...row].reverse();
+    const rowHeight = rowHeights[rowIndex] ?? profile.nodeHeight;
+    let x = (width - (rowWidths[rowIndex] ?? 0)) / 2;
+    for (const block of visual) {
+      let blockY = y + (rowHeight - block.height) / 2;
+      for (const id of block.group) {
+        const node = sizedById.get(id)!;
+        nodes.push({ ...node, x: x + block.width / 2, y: blockY + node.height / 2 });
+        blockY += node.height + profile.nodeGap;
+      }
+      x += block.width + profile.nodeGap;
+    }
+    y += rowHeight + profile.nodeGap;
+  });
+
+  return { ...component, width, height, nodes, rank };
 };
 
 const buildComponentLayouts = (
@@ -284,37 +368,20 @@ const buildComponentLayouts = (
   const sourceNodes = new Map(graph.nodes.map((node) => [node.id, node]));
 
   return analysis.components.map((component) => {
-    if (!component.cyclic) {
-      const id = component.nodeIds[0]!;
-      const node = sourceNodes.get(id)!;
-      const sized = nodeSize(node, profile);
-      return {
-        ...component,
-        width: sized.width,
-        height: sized.height,
-        nodes: [{ ...sized, x: sized.width / 2, y: sized.height / 2 }],
-        rank: ranks.get(component.id) ?? 0
-      };
+    if (component.cyclic) {
+      return layoutCyclicComponent(component, graph, sourceNodes, profile, ranks.get(component.id) ?? 0);
     }
 
-    const ordered = cycleOrder(component, graph, analysis);
-    const slots = cycleSlots(ordered.length);
-    const sized = ordered.map((id) => nodeSize(sourceNodes.get(id)!, profile));
-    const cols = Math.max(...slots.map((slot) => slot.col)) + 1;
-    const rows = Math.max(...slots.map((slot) => slot.row)) + 1;
-    const width = cols * profile.nodeWidth + Math.max(0, cols - 1) * profile.nodeGap;
-    const maxNodeHeight = Math.max(...sized.map((node) => node.height));
-    const height = rows * maxNodeHeight + Math.max(0, rows - 1) * profile.nodeGap;
-    const nodes = sized.map((node, index) => {
-      const slot = slots[index] ?? { col: 0, row: 0 };
-      return {
-        ...node,
-        x: slot.col * (profile.nodeWidth + profile.nodeGap) + profile.nodeWidth / 2,
-        y: slot.row * (maxNodeHeight + profile.nodeGap) + maxNodeHeight / 2
-      };
-    });
-
-    return { ...component, width, height, nodes, rank: ranks.get(component.id) ?? 0 };
+    const id = component.nodeIds[0]!;
+    const node = sourceNodes.get(id)!;
+    const sized = nodeSize(node, profile);
+    return {
+      ...component,
+      width: sized.width,
+      height: sized.height,
+      nodes: [{ ...sized, x: sized.width / 2, y: sized.height / 2 }],
+      rank: ranks.get(component.id) ?? 0
+    };
   });
 };
 
