@@ -19,17 +19,21 @@
 
 .article-graph__viewport {
   width: 100%;
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
+  overflow-x: hidden;
 }
 
 .article-graph__stage {
+  box-sizing: border-box;
   display: flex;
   width: 100%;
-  min-width: max-content;
+  min-width: 0;
   padding: 0.9rem 1rem 1.05rem;
   align-items: center;
   justify-content: center;
+}
+
+.article-graph__stage--mobile {
+  display: none;
 }
 
 .article-graph__svg {
@@ -37,7 +41,7 @@
   flex: none;
   width: auto;
   height: auto;
-  max-width: none;
+  max-width: 100%;
   overflow: visible;
 }
 
@@ -208,8 +212,18 @@
     margin-block: 2.25rem 2.75rem;
   }
 
-  .article-graph__stage {
-    padding-inline: 0.75rem;
-    justify-content: flex-start;
+  .article-graph__stage--desktop {
+    display: none;
+  }
+
+  .article-graph__stage--mobile {
+    display: flex;
+    padding-inline: 0;
+  }
+
+  .article-graph__stage--mobile .article-graph__svg {
+    width: min(100%, 21rem);
+    max-width: 100%;
+    height: auto;
   }
 }

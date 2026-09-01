@@ -1,4 +1,4 @@
-import { compileGraphSvg } from './compiler';
+import { compileGraphVariantSvg } from './compiler';
 import { parseGraph } from './parser';
 import {
   roughArrowHead,
@@ -17,6 +17,14 @@ const EDGE_LABEL_PATTERN = /<text class="graph-edge-label"[^>]*>.*?<\/text>/g;
 const NODE_PATTERN = /<g class="graph-node graph-node--([a-z-]+)">\s*<rect x="([^"]+)" y="([^"]+)" width="([^"]+)" height="([^"]+)" rx="4"\/>\s*(<text[\s\S]*?<\/text>)\s*<\/g>/g;
 const EDGE_PATTERN = /<g class="graph-edge([^"]*)"><path d="([^"]+)" marker-end="[^"]+"\/>(.*?)<\/g>/g;
 const MARKER_PATTERN = /\s*<marker id="graph-arrow-[^"]+"[\s\S]*?<\/marker>\s*/g;
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 
 const hoistEdgeLabels = (markup: string): string => {
   const labels: string[] = [];
@@ -101,14 +109,19 @@ const renderRoughEdges = (markup: string, graphKey: string): string => {
 /**
  * Replaces perfect SVG primitives with deterministic hand-drawn geometry while
  * preserving the compiler's positions, dimensions and graph layout.
+ *
+ * The function accepts both the legacy complete figure and a standalone SVG so
+ * the Markdown renderer can skin desktop/mobile variants independently.
  */
 export function applyHandDrawnSkin(markup: string): string {
   const graphKey = markup.match(/id="(graph-arrow-[A-Za-z0-9-]+)"/)?.[1] ?? 'graph';
 
-  let sketched = markup.replace(
-    '<figure class="article-graph"',
-    '<figure class="article-graph" data-graph-skin="handwrite"'
-  );
+  let sketched = markup.includes('<figure class="article-graph"')
+    ? markup.replace(
+        '<figure class="article-graph"',
+        '<figure class="article-graph" data-graph-skin="handwrite"'
+      )
+    : markup;
 
   sketched = renderRoughEdges(sketched, graphKey);
   sketched = renderRoughNodes(sketched, graphKey);
@@ -117,12 +130,32 @@ export function applyHandDrawnSkin(markup: string): string {
   return hoistEdgeLabels(sketched);
 }
 
+const responsiveGraphMarkup = (source: string): string => {
+  const graph = parseGraph(source);
+  const desktop = applyHandDrawnSkin(compileGraphVariantSvg(graph, 'desktop'));
+  const mobile = applyHandDrawnSkin(
+    compileGraphVariantSvg(graph, 'mobile', {
+      viewport: 'content',
+      viewportPadding: 18
+    })
+  );
+  const title = graph.title ? `<figcaption>${escapeHtml(graph.title)}</figcaption>` : '';
+
+  return `<figure class="article-graph" data-graph-skin="handwrite">
+${title}
+<div class="article-graph__viewport">
+  <div class="article-graph__stage article-graph__stage--desktop">${desktop}</div>
+  <div class="article-graph__stage article-graph__stage--mobile">${mobile}</div>
+</div>
+</figure>`;
+};
+
 /**
  * Sätteri MDAST plugin used by Astro 7.
  *
- * Only `graph` code fences cross into JavaScript. The compiler runs at build time
- * and replaces the fence with escaped, static SVG markup, so diagrams add no
- * browser-side JavaScript or runtime dependency.
+ * Only `graph` code fences cross into JavaScript. Both responsive variants are
+ * compiled at build time, so diagrams add no browser-side JavaScript or runtime
+ * layout dependency.
  */
 export function graphMdastPlugin() {
   return {
@@ -132,12 +165,9 @@ export function graphMdastPlugin() {
         return;
       }
 
-      const graph = parseGraph(node.value);
-      const markup = compileGraphSvg(graph);
-
       return {
         type: 'html' as const,
-        value: applyHandDrawnSkin(markup)
+        value: responsiveGraphMarkup(node.value)
       };
     }
   };
