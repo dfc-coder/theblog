@@ -92,6 +92,8 @@ export interface LayoutProfile {
   readonly rankGap: number;
   readonly maxColumns: number;
   readonly direction?: LayoutDirection;
+  readonly anchorWidth?: number;
+  readonly anchorHeight?: number;
 }
 
 export interface Theme {
